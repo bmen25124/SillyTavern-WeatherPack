@@ -26,7 +26,7 @@ function stage1_processQuotes(text: string): string {
   // 2. QUOTE (standard quote)
   // It prioritizes the *QUOTE* form if nested/ambiguous.
   // Content inside quotes can contain asterisks.
-  const quotePattern = /(\*("((?:[^"]|\*)*?)")\*)|("((?:[^"]|\*)*?)")/g;
+  const quotePattern = /(\*+("((?:[^"]|\*)*?)")\*+)|("((?:[^"]|\*)*?)")/g;
 
   return text.replace(
     quotePattern,
@@ -54,15 +54,15 @@ function stage1_processQuotes(text: string): string {
   );
 }
 
-function processNonQuotedSegment(segment: string): string {
-  if (!segment.trim()) {
-    return segment; // Preserve whitespace-only segments
+function processSingleParagraphNonQuotedSegment(paragraphSegment: string): string {
+  if (!paragraphSegment.trim()) {
+    return paragraphSegment; // Preserve whitespace-only segments
   }
 
   let newProcessedText = '';
   // Split by one or more punctuation characters, keeping them.
   // e.g. "Hi! How are you???" -> ["Hi", "!", " How are you", "???"]
-  const parts = segment.split(/([.!?]+)/g);
+  const parts = paragraphSegment.split(/([.!?]+)/g);
 
   let i = 0;
   while (i < parts.length) {
@@ -111,6 +111,33 @@ function processNonQuotedSegment(segment: string): string {
   return newProcessedText;
 }
 
+function processNonQuotedSegment(segment: string): string {
+  if (!segment.trim() && !segment.includes('\n')) {
+    // Preserve segments that are only whitespace unless they contain newlines
+    return segment;
+  }
+
+  // Split by any sequence of one or more newlines, keeping the newline sequences
+  const parts = segment.split(/(\n+)/g);
+  const processedParts = parts.map((part) => {
+    if (/\n+/.test(part)) {
+      // This part is a newline sequence, keep it as is
+      return part;
+    } else {
+      // This part is actual text content, process it
+      return processSingleParagraphNonQuotedSegment(part);
+    }
+  });
+
+  return processedParts.join('');
+}
+
+// Post-processing step to clean up adjacent italics
+function postProcess(text: string): string {
+  // Replace "* *" with " " to merge adjacent italics like *foo* *bar* into *foo bar*
+  return text.replace(/\* \*/g, ' ');
+}
+
 export function simplifyMarkdown(text: string): string {
   if (!text.trim()) {
     return text;
@@ -140,6 +167,10 @@ export function simplifyMarkdown(text: string): string {
   const processedRemaining = processNonQuotedSegment(remainingText);
   resultStage2 += processedRemaining;
 
-  const finalResult = originalLeadingSpace + resultStage2 + originalTrailingSpace;
+  let finalResult = originalLeadingSpace + resultStage2 + originalTrailingSpace;
+
+  // Stage 3: Final post-processing cleanup
+  finalResult = postProcess(finalResult);
+
   return finalResult;
 }

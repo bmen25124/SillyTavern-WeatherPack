@@ -54,7 +54,7 @@ async function initUI() {
   // @ts-ignore
   globalContext.eventSource.makeFirst(EventNames.CHARACTER_MESSAGE_RENDERED, async (messageId: number) => {
     if (incomingTypes.includes(settings.autoMode)) {
-      formatMessage(messageId);
+      // formatMessage(messageId);
     }
   });
   // @ts-ignore

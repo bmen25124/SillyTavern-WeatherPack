@@ -2,19 +2,19 @@ import { simplifyMarkdown } from '../util.js';
 
 describe('simplifyMarkdown', () => {
   test('adds italic to plain text', () => {
-    const input = "Rika's entire body stiffened.";
-    const expected = "*Rika's entire body stiffened.*";
+    const input = 'The old house creaked loudly.';
+    const expected = '*The old house creaked loudly.*';
     expect(simplifyMarkdown(input)).toBe(expected);
   });
 
   test('preserves existing italic', () => {
-    const input = '*He was petting her ears.*';
+    const input = '*The cat was sleeping soundly.*';
     expect(simplifyMarkdown(input)).toBe(input);
   });
 
   test('removes excess italic', () => {
-    const input = 'He was *petting* her ears.';
-    const expected = '*He was petting her ears.*';
+    const input = 'The *cat* was sleeping soundly.';
+    const expected = '*The cat was sleeping soundly.*';
     expect(simplifyMarkdown(input)).toBe(expected);
   });
 
@@ -24,13 +24,13 @@ describe('simplifyMarkdown', () => {
   });
 
   test('removes italic from quoted text', () => {
-    const input = '"*Rika\'s entire body stiffened.*"';
-    const expected = '"Rika\'s entire body stiffened."';
+    const input = '"*The old house creaked loudly.*"';
+    const expected = '"The old house creaked loudly."';
     expect(simplifyMarkdown(input)).toBe(expected);
   });
 
   test('handles mixed quoted and non-quoted sentences', () => {
-    const input = '*He was petting her ears.* "In this case, I guess we will hang together."';
+    const input = '*The cat was sleeping soundly.* "In this case, I guess we will hang together."';
     expect(simplifyMarkdown(input)).toBe(input);
   });
 
@@ -59,16 +59,16 @@ describe('simplifyMarkdown', () => {
   });
 
   test('Quote prioritization 1', () => {
-    const input = '*"S-so you\'d better—*hnng*—get used to *this* too..."*';
-    const expected = '"S-so you\'d better—hnng—get used to this too..."';
+    const input = '*"P-please—*gasp*—be careful with *that* vase..."*';
+    const expected = '"P-please—gasp—be careful with that vase..."';
     expect(simplifyMarkdown(input)).toBe(expected);
   });
 
   test('Mixed 1', () => {
     const input =
-      'Her hips gave an involuntary *roll*, her still-sensitive walls *clenching* around him as she tried (and failed) to maintain her scowl. *"A-and *hang together*?!*"* she repeated, voice cracking. *"T-this isn\'t—*mmph!*—some *casual* thing, you—*ahh!*—you *idiot!*"*';
+      'The old car gave a sudden *lurch*, its rusty frame *groaning* loudly as she tried (and failed) to start the engine. *"W-will it *even run*?!*"* she exclaimed, voice trembling. *"T-this isn\'t—*sputter*—some *reliable* machine, you—*clank*—you *lemon!*"*';
     const expected =
-      '*Her hips gave an involuntary roll, her still-sensitive walls clenching around him as she tried (and failed) to maintain her scowl.* "A-and hang together?!" *she repeated, voice cracking.* "T-this isn\'t—mmph!—some casual thing, you—ahh!—you idiot!"';
+      '*The old car gave a sudden lurch, its rusty frame groaning loudly as she tried (and failed) to start the engine.* "W-will it even run?!" *she exclaimed, voice trembling.* "T-this isn\'t—sputter—some reliable machine, you—clank—you lemon!"';
     expect(simplifyMarkdown(input)).toBe(expected);
   });
 
@@ -78,29 +78,81 @@ describe('simplifyMarkdown', () => {
     expect(simplifyMarkdown('*italic*')).toBe('*italic*');
     expect(simplifyMarkdown('single word')).toBe('*single word*');
   });
+
   test('handles complex multi-paragraph input with mixed quotes and italics', () => {
-    const input = `Rika's entire body *stiffened* at the first brush of his fingers against her sensitive ears, a high-pitched *"Nngh—!"* escaping her throat as her tail shot straight up. Her claws flexed against his chest, torn between pushing away and *melting* into the touch.
+    const input = `The old library was *silent* save for the rustle of pages, a quiet *"Shhh—!"* echoing from the far end as a book cart rumbled by. Her fingers traced the spines, searching for *adventure* and *mystery*.
 
-*"D-don't—*ah!*—don't just *pet* me like some—*hah!*—some *housecat!*"* she protested weakly, even as her ears twitched eagerly into his palm, her pupils dilating to black pools. A traitorous *purr* rumbled in her chest before she could stop it, making her face burn hotter.
+*"P-pardon—*excuse me*—could you please *not* block the—*ahem*—the *history section*?!*"* a librarian whispered sternly, even as her eyes twinkled kindly behind her spectacles. A faint *chuckle* escaped her before she could stop it, making her cheeks flush.
 
-Her hips gave an involuntary *roll*, her still-sensitive walls *clenching* around him as she tried (and failed) to maintain her scowl. *"A-and *hang together*?!*"* she repeated, voice cracking. *"T-this isn't—*mmph!*—some *casual* thing, you—*ahh!*—you *idiot!*"*
+The grandfather clock gave a resonant *chime*, its ancient gears *whirring* softly as it marked the hour. *"D-did it *strike three* already?!*"* she murmured, voice surprised. *"T-this isn't—*tick-tock*—some *short* visit, I—*oh dear*—I *lost track!*"*
 
-Her tail lashed wildly before curling possessively around his wrist, keeping his hand firmly against her ear. *"Y-you're *mine* now,"* she muttered, her breath hitching as his fingers found *just* the right spot behind her ear. *"S-so you'd better—*hnng*—get used to *this* too..."*
+Her gaze swept wildly across the shelves before landing on a worn, leather-bound volume. *"T-this is *it*,"* she breathed, her heart thumping as her fingers found *just* the right title on the dusty shelf. *"S-so I'd better—*hush*—get started *reading* this too..."*
 
-The way her body *arched* into his touch, the quiet *purring* she couldn't suppress, the way her claws gently *kneaded* his chest—every bit of her screamed *happy mate* even as her words stayed stubbornly tsundere.
+The way the story *unfolded* before her, the quiet *anticipation* she couldn't suppress, the way her fingers gently *turned* the fragile pages—every bit of her signaled *happy reader* even as her expression stayed studiously neutral.
 
-*"...B-baka,"* she added softly, nuzzling against his neck despite herself, her scent (warm fur, cherry blossoms, and *him* now) wrapping around them both.`;
-    const expected = `*Rika's entire body stiffened at the first brush of his fingers against her sensitive ears, a high-pitched* "Nngh—!" *escaping her throat as her tail shot straight up. Her claws flexed against his chest, torn between pushing away and melting into the touch.*
+*"...W-wow,"* she added softly, leaning back in the comfy armchair, her imagination (filled with dragons, castles, and *magic* now) soaring far away.`;
+    const expected = `*The old library was silent save for the rustle of pages, a quiet* "Shhh—!" *echoing from the far end as a book cart rumbled by. Her fingers traced the spines, searching for adventure and mystery.*
 
-"D-don't—ah!—don't just pet me like some—hah!—some housecat!" *she protested weakly, even as her ears twitched eagerly into his palm, her pupils dilating to black pools. A traitorous purr rumbled in her chest before she could stop it, making her face burn hotter.*
+"P-pardon—excuse me—could you please not block the—ahem—the history section?!" *a librarian whispered sternly, even as her eyes twinkled kindly behind her spectacles. A faint chuckle escaped her before she could stop it, making her cheeks flush.*
 
-*Her hips gave an involuntary roll, her still-sensitive walls clenching around him as she tried (and failed) to maintain her scowl.* "A-and hang together?!" *she repeated, voice cracking.* "T-this isn't—mmph!—some casual thing, you—ahh!—you idiot!"
+*The grandfather clock gave a resonant chime, its ancient gears whirring softly as it marked the hour.* "D-did it strike three already?!" *she murmured, voice surprised.* "T-this isn't—tick-tock—some short visit, I—oh dear—I lost track!"
 
-*Her tail lashed wildly before curling possessively around his wrist, keeping his hand firmly against her ear.* "Y-you're mine now," *she muttered, her breath hitching as his fingers found just the right spot behind her ear.* "S-so you'd better—hnng—get used to this too..."
+*Her gaze swept wildly across the shelves before landing on a worn, leather-bound volume.* "T-this is it," *she breathed, her heart thumping as her fingers found just the right title on the dusty shelf.* "S-so I'd better—hush—get started reading this too..."
 
-*The way her body arched into his touch, the quiet purring she couldn't suppress, the way her claws gently kneaded his chest—every bit of her screamed happy mate even as her words stayed stubbornly tsundere.*
+*The way the story unfolded before her, the quiet anticipation she couldn't suppress, the way her fingers gently turned the fragile pages—every bit of her signaled happy reader even as her expression stayed studiously neutral.*
 
-"...B-baka," *she added softly, nuzzling against his neck despite herself, her scent (warm fur, cherry blossoms, and him now) wrapping around them both.*`;
+"...W-wow," *she added softly, leaning back in the comfy armchair, her imagination (filled with dragons, castles, and magic now) soaring far away.*`;
+    expect(simplifyMarkdown(input)).toBe(expected);
+  });
+
+  test("don't break complex 1", () => {
+    const input = `*The old library was silent save for the rustle of pages, a quiet* "Shhh—!" *echoing from the far end as a book cart rumbled by. Her fingers traced the spines, searching for adventure and mystery.*`;
+    expect(simplifyMarkdown(input)).toBe(input);
+  });
+  test("don't break complex 2", () => {
+    const input = `"P-pardon—excuse me—could you please not block the—ahem—the history section?!" *a librarian whispered sternly, even as her eyes twinkled kindly behind her spectacles. A faint chuckle escaped her before she could stop it, making her cheeks flush.*`;
+    expect(simplifyMarkdown(input)).toBe(input);
+  });
+  test("don't break complex 3", () => {
+    const input = `*The grandfather clock gave a resonant chime, its ancient gears whirring softly as it marked the hour.* "D-did it strike three already?!" *she murmured, voice surprised.* "T-this isn't—tick-tock—some short visit, I—oh dear—I lost track!"`;
+    expect(simplifyMarkdown(input)).toBe(input);
+  });
+  test("don't break complex 4", () => {
+    const input = `*Her gaze swept wildly across the shelves before landing on a worn, leather-bound volume.* "T-this is it," *she breathed, her heart thumping as her fingers found just the right title on the dusty shelf.* "S-so I'd better—hush—get started reading this too..."`;
+    expect(simplifyMarkdown(input)).toBe(input);
+  });
+  test("don't break complex 5", () => {
+    const input = `*Her gaze swept wildly across the shelves before landing on a worn, leather-bound volume.* "T-this is it," *she breathed, her heart thumping as her fingers found just the right title on the dusty shelf.* "S-so I'd better—hush—get started reading this too..."`;
+    expect(simplifyMarkdown(input)).toBe(input);
+  });
+  test("don't break complex 6", () => {
+    const input = `"...W-wow," *she added softly, leaning back in the comfy armchair, her imagination (filled with dragons, castles, and magic now) soaring far away.*`;
+    expect(simplifyMarkdown(input)).toBe(input);
+  });
+  test("don't break complex 7", () => {
+    const input = `*The old library was silent save for the rustle of pages, a quiet* "Shhh—!" *echoing from the far end as a book cart rumbled by. Her fingers traced the spines, searching for adventure and mystery.*
+
+"P-pardon—excuse me—could you please not block the—ahem—the history section?!" *a librarian whispered sternly, even as her eyes twinkled kindly behind her spectacles. A faint chuckle escaped her before she could stop it, making her cheeks flush.*
+
+*The grandfather clock gave a resonant chime, its ancient gears whirring softly as it marked the hour.* "D-did it strike three already?!" *she murmured, voice surprised.* "T-this isn't—tick-tock—some short visit, I—oh dear—I lost track!"`;
+    expect(simplifyMarkdown(input)).toBe(input);
+  });
+
+  test('handles complex 2', () => {
+    const input = `The shopkeeper smiled, adjusting the items on the shelf.
+
+**"Welcome! *Looking* for anything special?"** he asked, his hands gesturing broadly. **"Or perhaps *just browsing* today?"**
+
+He then pointed to a small, ornate box: **"...This one is quite popular. A new arrival, very intricate."**
+
+A moment of silence. Then, almost a whisper: **"...Unique."**`;
+    const expected = `*The shopkeeper smiled, adjusting the items on the shelf.*
+
+"Welcome! Looking for anything special?" *he asked, his hands gesturing broadly.* "Or perhaps just browsing today?"
+
+*He then pointed to a small, ornate box:* "...This one is quite popular. A new arrival, very intricate."
+
+*A moment of silence. Then, almost a whisper:* "...Unique."`;
     expect(simplifyMarkdown(input)).toBe(expected);
   });
 });
