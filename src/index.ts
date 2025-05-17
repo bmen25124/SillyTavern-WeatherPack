@@ -37,7 +37,7 @@ async function initUI() {
   $(document).on('click', '.mes_markdown_fix_button', async function () {
     const messageBlock = $(this).closest('.mes');
     const messageId = Number(messageBlock.attr('mesid'));
-    formatMessage(messageId);
+    await formatMessage(messageId);
   });
 
   const settings = settingsManager.getSettings();
@@ -54,7 +54,7 @@ async function initUI() {
   // @ts-ignore
   globalContext.eventSource.makeFirst(EventNames.CHARACTER_MESSAGE_RENDERED, async (messageId: number) => {
     if (incomingTypes.includes(settings.autoMode)) {
-      // formatMessage(messageId);
+      // await formatMessage(messageId);
     }
   });
   // @ts-ignore
@@ -64,7 +64,7 @@ async function initUI() {
   });
 }
 
-function formatMessage(id: number) {
+async function formatMessage(id: number) {
   const message = SillyTavern.getContext().chat[id];
   if (!message) {
     st_echo('error', `Message with ID ${id} not found.`);
@@ -72,6 +72,7 @@ function formatMessage(id: number) {
   }
   message.mes = simplifyMarkdown(message.mes);
   st_updateMessageBlock(id, message);
+  await globalContext.saveChat();
 }
 
 function main() {
