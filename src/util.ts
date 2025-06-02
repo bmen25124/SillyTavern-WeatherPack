@@ -139,6 +139,9 @@ function postProcess(text: string): string {
 }
 
 export function simplifyMarkdown(text: string): string {
+  // Replace fancy quotes with standard quotes
+  text = text.replace(/[“”]/g, '"');
+
   if (!text.trim()) {
     return text;
   }

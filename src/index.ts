@@ -30,6 +30,20 @@ const incomingTypes = [AutoModeOptions.RESPONSES, AutoModeOptions.BOTH];
 const outgoingTypes = [AutoModeOptions.INPUT, AutoModeOptions.BOTH];
 
 async function initUI() {
+  // Add process all messages button to options menu
+  const processAllButton = $('<a class="interactable">Process all messages</a>');
+  $('#options .options-content').append(processAllButton);
+
+  // Add click handler for process all button
+  processAllButton.on('click', async function () {
+    if (
+      !(await globalContext.Popup.show.confirm('This will process all messages in the chat. Do you want to continue?'))
+    ) {
+      return;
+    }
+    await processAllMessages();
+  });
+
   const showFixButton = $(
     `<div title="Markdown Fixer" class="mes_button mes_markdown_fix_button fa-solid fa-screwdriver interactable" tabindex="0"></div>`,
   );
@@ -38,6 +52,7 @@ async function initUI() {
     const messageBlock = $(this).closest('.mes');
     const messageId = Number(messageBlock.attr('mesid'));
     await formatMessage(messageId);
+    await globalContext.saveChat();
   });
 
   const settings = settingsManager.getSettings();
@@ -55,6 +70,7 @@ async function initUI() {
   globalContext.eventSource.makeFirst(EventNames.CHARACTER_MESSAGE_RENDERED, async (messageId: number) => {
     if (incomingTypes.includes(settings.autoMode)) {
       // await formatMessage(messageId);
+      // await globalContext.saveChat();
     }
   });
   // @ts-ignore
@@ -62,6 +78,15 @@ async function initUI() {
     if (outgoingTypes.includes(settings.autoMode)) {
     }
   });
+}
+
+async function processAllMessages() {
+  const chat = globalContext.chat;
+  for (let i = 0; i < chat.length; i++) {
+    await formatMessage(i);
+  }
+  await globalContext.saveChat();
+  st_echo('info', 'Processed all messages');
 }
 
 async function formatMessage(id: number) {
@@ -72,7 +97,6 @@ async function formatMessage(id: number) {
   }
   message.mes = simplifyMarkdown(message.mes);
   st_updateMessageBlock(id, message);
-  await globalContext.saveChat();
 }
 
 function main() {

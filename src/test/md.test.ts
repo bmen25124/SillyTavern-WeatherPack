@@ -155,4 +155,10 @@ A moment of silence. Then, almost a whisper: **"...Unique."**`;
 *A moment of silence. Then, almost a whisper:* "...Unique."`;
     expect(simplifyMarkdown(input)).toBe(expected);
   });
+
+  test('replaces fancy quotes with standard quotes', () => {
+    const input = '“Hello,” she said. “How are you?”';
+    const expected = '"Hello," *she said.* "How are you?"';
+    expect(simplifyMarkdown(input)).toBe(expected);
+  });
 });
