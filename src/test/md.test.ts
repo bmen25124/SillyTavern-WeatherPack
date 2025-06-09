@@ -186,3 +186,20 @@ A moment of silence. Then, almost a whisper: **"...Unique."**`;
     expect(simplifyMarkdown(input)).toBe(expected);
   });
 });
+
+test('preserves OOC blocks', () => {
+  const input = 'This is a test. (OOC: This should not be *italicized*.)';
+  const expected = '*This is a test.* (OOC: This should not be *italicized*.)';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});
+
+test('preserves OOC block only', () => {
+  const input = '(OOC: This should not be *italicized*.)';
+  expect(simplifyMarkdown(input)).toBe(input);
+});
+
+test('preserves multi-line OOC blocks', () => {
+  const input = 'This is a test.\n(OOC: This should not be *italicized*.\nAnd this is a new line.)\nMore text.';
+  const expected = '*This is a test.*\n(OOC: This should not be *italicized*.\nAnd this is a new line.)\n*More text.*';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});

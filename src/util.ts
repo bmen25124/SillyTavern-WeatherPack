@@ -116,6 +116,7 @@ export function simplifyMarkdown(text: string): string {
 
   const fencedBlocks: string[] = [];
   const inlineBlocks: string[] = [];
+  const oocBlocks: string[] = [];
 
   // The text being processed for placeholders should be the full text.
   let textWithPlaceholders = text;
@@ -134,6 +135,12 @@ export function simplifyMarkdown(text: string): string {
     return `__INLINE_${inlineBlocks.length - 1}__`;
   });
 
+  // Stage 0c: Preserve OOC blocks ((OOC:...))
+  textWithPlaceholders = textWithPlaceholders.replace(/\(OOC:[\s\S]*?\)/gi, (match) => {
+    oocBlocks.push(match);
+    return `__OOC_${oocBlocks.length - 1}__`;
+  });
+
   // Now, process the text with placeholders using the existing logic
   const originalLeadingSpace = textWithPlaceholders.match(/^\s*/)?.[0] || '';
   const originalTrailingSpace = textWithPlaceholders.match(/\s*$/)?.[0] || '';
@@ -145,7 +152,7 @@ export function simplifyMarkdown(text: string): string {
   // Stage 2: Process non-quoted parts for italics
   let resultStage2 = '';
   let lastIndex = 0;
-  const boundaryRegex = /"[^"]*"|__FENCED_\d+__|__INLINE_\d+__/g;
+  const boundaryRegex = /"[^"]*"|__FENCED_\d+__|__INLINE_\d+__|__OOC_\d+__/g;
   let match: RegExpExecArray | null = null;
 
   while ((match = boundaryRegex.exec(currentText)) !== null) {
@@ -170,6 +177,9 @@ export function simplifyMarkdown(text: string): string {
   });
   finalResult = finalResult.replace(/__INLINE_(\d+)__/g, (_match, index) => {
     return inlineBlocks[parseInt(index, 10)];
+  });
+  finalResult = finalResult.replace(/__OOC_(\d+)__/g, (_match, index) => {
+    return oocBlocks[parseInt(index, 10)];
   });
 
   return finalResult;
