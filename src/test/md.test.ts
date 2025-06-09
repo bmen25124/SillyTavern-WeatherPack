@@ -161,4 +161,11 @@ A moment of silence. Then, almost a whisper: **"...Unique."**`;
     const expected = '"Hello," *she said.* "How are you?"';
     expect(simplifyMarkdown(input)).toBe(expected);
   });
+
+  test('handles complex dialogue with mixed quotes and italics', () => {
+    const input = `"YOU!" *Callie exploded, the sound tearing from her throat, raw and furious.** Her voice cracked, fury overriding her pitch control. The sniper flinched, whipping around with wide, startled eyes, dropping his rifle with a clatter.* "You cowardly, alley-sniping PIECE OF GARBAGE!"`;
+    const expected =
+      '"YOU!" *Callie exploded, the sound tearing from her throat, raw and furious. Her voice cracked, fury overriding her pitch control. The sniper flinched, whipping around with wide, startled eyes, dropping his rifle with a clatter.* "You cowardly, alley-sniping PIECE OF GARBAGE!"';
+    expect(simplifyMarkdown(input)).toBe(expected);
+  });
 });

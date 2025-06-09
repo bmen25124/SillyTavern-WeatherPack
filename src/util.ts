@@ -59,56 +59,22 @@ function processSingleParagraphNonQuotedSegment(paragraphSegment: string): strin
     return paragraphSegment; // Preserve whitespace-only segments
   }
 
-  let newProcessedText = '';
-  // Split by one or more punctuation characters, keeping them.
-  // e.g. "Hi! How are you???" -> ["Hi", "!", " How are you", "???"]
-  const parts = paragraphSegment.split(/([.!?]+)/g);
+  const leadingSpace = paragraphSegment.match(/^\s*/)?.[0] || '';
+  const trailingSpace = paragraphSegment.match(/\s*$/)?.[0] || '';
+  const contentToProcess = paragraphSegment.trim();
 
-  let i = 0;
-  while (i < parts.length) {
-    let currentTextPart = parts[i];
-    i++;
-
-    // Skip null/undefined parts, or empty strings that are not the sole content
-    if (currentTextPart === null || currentTextPart === undefined) {
-      continue;
-    }
-    if (currentTextPart === '' && parts.length > 1 && !(i === parts.length && parts.every((p) => p === ''))) {
-      if (i < parts.length && /^[.!?]+$/.test(parts[i])) {
-      } else {
-        newProcessedText += currentTextPart;
-        continue;
-      }
-    }
-
-    let currentPunctuation = '';
-    if (i < parts.length && /^[.!?]+$/.test(parts[i])) {
-      currentPunctuation = parts[i];
-      i++;
-    }
-
-    const combinedBlock = currentTextPart + currentPunctuation;
-
-    if (!combinedBlock && parts.length === 1) {
-      return ''; // Segment was "" or only contained empty parts
-    }
-
-    const leadingSpace = combinedBlock.match(/^\s*/)?.[0] || '';
-    const trailingSpace = combinedBlock.match(/\s*$/)?.[0] || '';
-    const contentToProcess = combinedBlock.trim();
-
-    if (!contentToProcess) {
-      newProcessedText += combinedBlock; // Add back the original whitespace
-    } else {
-      const deItalicizedContent = removeAllStandardAsterisks(contentToProcess);
-      if (!deItalicizedContent.trim()) {
-        newProcessedText += leadingSpace + deItalicizedContent + trailingSpace;
-      } else {
-        newProcessedText += leadingSpace + addStandardItalic(deItalicizedContent) + trailingSpace;
-      }
-    }
+  if (!contentToProcess) {
+    return paragraphSegment; // Return original if only whitespace
   }
-  return newProcessedText;
+
+  // Remove all existing asterisks and then add a single italic wrapper
+  const deItalicizedContent = removeAllStandardAsterisks(contentToProcess);
+
+  if (!deItalicizedContent.trim()) {
+    return leadingSpace + deItalicizedContent + trailingSpace;
+  } else {
+    return leadingSpace + addStandardItalic(deItalicizedContent) + trailingSpace;
+  }
 }
 
 function processNonQuotedSegment(segment: string): string {
@@ -141,6 +107,8 @@ function postProcess(text: string): string {
 export function simplifyMarkdown(text: string): string {
   // Replace fancy quotes with standard quotes
   text = text.replace(/[“”]/g, '"');
+  // Normalize multiple consecutive asterisks with single asterisks at the very beginning
+  text = text.replace(/\*{2,}/g, '*');
 
   if (!text.trim()) {
     return text;
