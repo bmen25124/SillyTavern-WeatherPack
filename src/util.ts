@@ -114,9 +114,30 @@ export function simplifyMarkdown(text: string): string {
     return text;
   }
 
-  const originalLeadingSpace = text.match(/^\s*/)?.[0] || '';
-  const originalTrailingSpace = text.match(/\s*$/)?.[0] || '';
-  let currentText = text.trim();
+  const fencedBlocks: string[] = [];
+  const inlineBlocks: string[] = [];
+
+  // The text being processed for placeholders should be the full text.
+  let textWithPlaceholders = text;
+
+  // Stage 0a: Preserve fenced code blocks (```...```)
+  textWithPlaceholders = textWithPlaceholders.replace(/(```[\s\S]*?```)/g, (match) => {
+    fencedBlocks.push(match);
+    return `__FENCED_${fencedBlocks.length - 1}__`;
+  });
+
+  // Stage 0b: Process and preserve inline code blocks (`...`)
+  textWithPlaceholders = textWithPlaceholders.replace(/(`[^`\n]*?`)/g, (match) => {
+    const content = match.substring(1, match.length - 1);
+    const cleanedContent = removeAllStandardAsterisks(content);
+    inlineBlocks.push(`\`${cleanedContent}\``);
+    return `__INLINE_${inlineBlocks.length - 1}__`;
+  });
+
+  // Now, process the text with placeholders using the existing logic
+  const originalLeadingSpace = textWithPlaceholders.match(/^\s*/)?.[0] || '';
+  const originalTrailingSpace = textWithPlaceholders.match(/\s*$/)?.[0] || '';
+  let currentText = textWithPlaceholders.trim();
 
   // Stage 1: Normalize and clean all quote forms (*QUOTE* or QUOTE)
   currentText = stage1_processQuotes(currentText);
@@ -124,15 +145,15 @@ export function simplifyMarkdown(text: string): string {
   // Stage 2: Process non-quoted parts for italics
   let resultStage2 = '';
   let lastIndex = 0;
-  const cleanedQuoteRegex = /"[^"]*"/g; // Matches "cleaned_quote_content" from Stage 1
+  const boundaryRegex = /"[^"]*"|__FENCED_\d+__|__INLINE_\d+__/g;
   let match: RegExpExecArray | null = null;
 
-  while ((match = cleanedQuoteRegex.exec(currentText)) !== null) {
+  while ((match = boundaryRegex.exec(currentText)) !== null) {
     const nonQuoteText = currentText.substring(lastIndex, match.index);
     const processedNonQuote = processNonQuotedSegment(nonQuoteText);
     resultStage2 += processedNonQuote;
-    resultStage2 += match[0]; // Add the cleaned quote itself
-    lastIndex = cleanedQuoteRegex.lastIndex;
+    resultStage2 += match[0]; // Add the cleaned quote or placeholder itself
+    lastIndex = boundaryRegex.lastIndex;
   }
   const remainingText = currentText.substring(lastIndex);
   const processedRemaining = processNonQuotedSegment(remainingText);
@@ -142,6 +163,14 @@ export function simplifyMarkdown(text: string): string {
 
   // Stage 3: Final post-processing cleanup
   finalResult = postProcess(finalResult);
+
+  // Restore blocks
+  finalResult = finalResult.replace(/__FENCED_(\d+)__/g, (_match, index) => {
+    return fencedBlocks[parseInt(index, 10)];
+  });
+  finalResult = finalResult.replace(/__INLINE_(\d+)__/g, (_match, index) => {
+    return inlineBlocks[parseInt(index, 10)];
+  });
 
   return finalResult;
 }

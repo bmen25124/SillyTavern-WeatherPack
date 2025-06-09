@@ -168,4 +168,21 @@ A moment of silence. Then, almost a whisper: **"...Unique."**`;
       '"YOU!" *Callie exploded, the sound tearing from her throat, raw and furious. Her voice cracked, fury overriding her pitch control. The sniper flinched, whipping around with wide, startled eyes, dropping his rifle with a clatter.* "You cowardly, alley-sniping PIECE OF GARBAGE!"';
     expect(simplifyMarkdown(input)).toBe(expected);
   });
+
+  test('preserves fenced code blocks', () => {
+    const input = '```\nconst x = 1;\nconst y = 2;\n```';
+    expect(simplifyMarkdown(input)).toBe(input);
+  });
+
+  test('removes asterisks from inline code blocks', () => {
+    const input = 'This is some code: `const x = "*";`';
+    const expected = '*This is some code:* `const x = "";`';
+    expect(simplifyMarkdown(input)).toBe(expected);
+  });
+
+  test('handles mixed content with code blocks', () => {
+    const input = 'Here is some text. `*remove this*` and a code block:\n\n```\n*preserve this*\n```';
+    const expected = '*Here is some text.* `remove this` *and a code block:*\n\n```\n*preserve this*\n```';
+    expect(simplifyMarkdown(input)).toBe(expected);
+  });
 });
