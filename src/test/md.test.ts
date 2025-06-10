@@ -250,3 +250,20 @@ test('handles complex mixed content with HTML', () => {
   const expected = '*Regular text with* <strong>*asterisks*</strong> *and* "quotes" *plus* <em>more</em> *content.*';
   expect(simplifyMarkdown(input)).toBe(expected);
 });
+
+test('preserves code blocks inside HTML tags', () => {
+  const input = 'Text with <div>`code with *asterisks*`</div> and more.';
+  const expected = '*Text with* <div>`code with *asterisks*`</div> *and more.*';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});
+
+test('preserves OOC blocks inside HTML tags', () => {
+  const input = 'Text with <span>(OOC: *keep asterisks*)</span> here.';
+  const expected = '*Text with* <span>(OOC: *keep asterisks*)</span> *here.*';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});
+
+test('preserves nested structures in HTML', () => {
+  const input = '<details><summary>Code: `*asterisks*` and (OOC: *more*)</summary>Content</details>';
+  expect(simplifyMarkdown(input)).toBe(input);
+});

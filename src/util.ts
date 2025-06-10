@@ -128,7 +128,16 @@ export function simplifyMarkdown(text: string): string {
     return `__FENCED_${fencedBlocks.length - 1}__`;
   });
 
-  // Stage 0b: Process and preserve inline code blocks (`...`)
+  // Stage 0b: Preserve HTML/XML tags FIRST to keep their content intact
+  // This regex matches:
+  // 1. Paired tags with content: <tag ...>content</tag>  (<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?>[\s\S]*?<\/\2>)
+  // 2. Self-closing tags: <tag ... />                   (<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?\s*\/>)
+  textWithPlaceholders = textWithPlaceholders.replace(/(<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?>[\s\S]*?<\/\2>|<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?\s*\/>)/g, (match) => {
+    htmlBlocks.push(match);
+    return `__HTML_${htmlBlocks.length - 1}__`;
+  });
+
+  // Stage 0c: Process and preserve inline code blocks (`...`)
   textWithPlaceholders = textWithPlaceholders.replace(/(`[^`\n]*?`)/g, (match) => {
     const content = match.substring(1, match.length - 1);
     const cleanedContent = removeAllStandardAsterisks(content);
@@ -136,19 +145,10 @@ export function simplifyMarkdown(text: string): string {
     return `__INLINE_${inlineBlocks.length - 1}__`;
   });
 
-  // Stage 0c: Preserve OOC blocks ((OOC:...))
+  // Stage 0d: Preserve OOC blocks ((OOC:...))
   textWithPlaceholders = textWithPlaceholders.replace(/\(OOC:[\s\S]*?\)/gi, (match) => {
     oocBlocks.push(match);
     return `__OOC_${oocBlocks.length - 1}__`;
-  });
-
-  // Stage 0d: Preserve HTML/XML tags
-  // This regex matches:
-  // 1. Paired tags with content: <tag ...>content</tag>  (<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?>[\s\S]*?<\/\2>)
-  // 2. Self-closing tags: <tag ... />                   (<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?\s*\/>)
-  textWithPlaceholders = textWithPlaceholders.replace(/(<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?>[\s\S]*?<\/\2>|<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?\s*\/>)/g, (match) => {
-    htmlBlocks.push(match);
-    return `__HTML_${htmlBlocks.length - 1}__`;
   });
 
   // Now, process the text with placeholders using the existing logic
