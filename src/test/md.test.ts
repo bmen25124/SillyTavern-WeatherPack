@@ -203,3 +203,50 @@ test('preserves multi-line OOC blocks', () => {
   const expected = '*This is a test.*\n(OOC: This should not be *italicized*.\nAnd this is a new line.)\n*More text.*';
   expect(simplifyMarkdown(input)).toBe(expected);
 });
+
+test('preserves HTML tags', () => {
+  const input = 'This is <em>emphasized</em> text with <strong>bold</strong> content.';
+  const expected = '*This is* <em>emphasized</em> *text with* <strong>bold</strong> *content.*';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});
+
+test('preserves self-closing HTML tags', () => {
+  const input = 'Line break here<br/>and continue. Image here <img src="test.jpg"/> too.';
+  const expected = '*Line break here*<br/>*and continue. Image here* <img src="test.jpg"/> *too.*';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});
+
+test('preserves HTML tags with attributes', () => {
+  const input = 'This has <span class="highlight">highlighted text</span> inside.';
+  const expected = '*This has* <span class="highlight">highlighted text</span> *inside.*';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});
+
+test('preserves nested HTML tags', () => {
+  const input = 'Text with <div><span>nested tags</span></div> here.';
+  const expected = '*Text with* <div><span>nested tags</span></div> *here.*';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});
+
+test('preserves XML tags', () => {
+  const input = 'Some XML <config><setting>value</setting></config> content.';
+  const expected = '*Some XML* <config><setting>value</setting></config> *content.*';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});
+
+test('handles mixed HTML and quotes', () => {
+  const input = '"Hello," she said with <em>emphasis</em>. "How are you?"';
+  const expected = '"Hello," *she said with* <em>emphasis</em>*.* "How are you?"';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});
+
+test('preserves HTML tags only (no other text)', () => {
+  const input = '<div>Only HTML content</div>';
+  expect(simplifyMarkdown(input)).toBe(input);
+});
+
+test('handles complex mixed content with HTML', () => {
+  const input = 'Regular text with <strong>*asterisks*</strong> and "quotes" plus <em>more</em> content.';
+  const expected = '*Regular text with* <strong>*asterisks*</strong> *and* "quotes" *plus* <em>more</em> *content.*';
+  expect(simplifyMarkdown(input)).toBe(expected);
+});
