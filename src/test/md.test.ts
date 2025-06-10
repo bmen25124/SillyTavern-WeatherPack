@@ -267,3 +267,17 @@ test('preserves nested structures in HTML', () => {
   const input = '<details><summary>Code: `*asterisks*` and (OOC: *more*)</summary>Content</details>';
   expect(simplifyMarkdown(input)).toBe(input);
 });
+
+test('preserves complex nested HTML with multiple divs and scripts', () => {
+  const input = `<div id="coffeeSpill_5" onclick="revealNote_5()">
+  <div id="thoughtText_5">CRINGE! Why'd I say tragic?!</div>
+  <div id="embarrassingNote_5">❤️ TOM NOTES ❤️<br>• Call him KING??<br>• NO deadlifting talk<br>• HIDE lube stash</div>
+</div>`;
+
+  const expected = `<div id="coffeeSpill_5" onclick="revealNote_5()">
+  <div id="thoughtText_5">CRINGE! Why'd I say tragic?!</div>
+  <div id="embarrassingNote_5">❤️ TOM NOTES ❤️<br>• Call him KING??<br>• NO deadlifting talk<br>• HIDE lube stash</div>
+</div>`;
+
+  expect(simplifyMarkdown(input)).toBe(expected);
+});

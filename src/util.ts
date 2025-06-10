@@ -130,12 +130,42 @@ export function simplifyMarkdown(text: string): string {
 
   // Stage 0b: Preserve HTML/XML tags FIRST to keep their content intact
   // This regex matches:
-  // 1. Paired tags with content: <tag ...>content</tag>  (<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?>[\s\S]*?<\/\2>)
-  // 2. Self-closing tags: <tag ... />                   (<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?\s*\/>)
-  textWithPlaceholders = textWithPlaceholders.replace(/(<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?>[\s\S]*?<\/\2>|<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?\s*\/>)/g, (match) => {
-    htmlBlocks.push(match);
-    return `__HTML_${htmlBlocks.length - 1}__`;
-  });
+  // 1. Paired tags with content: <tag ...>content</tag>  - Using balanced parentheses approach
+  // 2. Self-closing tags: <tag ... />
+  // Updated to handle deeply nested structures properly
+  function extractHtmlTags(text: string): string {
+    let result = text;
+    let iteration = 0;
+    const maxIterations = 50; // Prevent infinite loops
+
+    while (iteration < maxIterations) {
+      let foundMatch = false;
+
+      // Match self-closing tags first
+      result = result.replace(/<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?\s*\/>/g, (match) => {
+        htmlBlocks.push(match);
+        foundMatch = true;
+        return `__HTML_${htmlBlocks.length - 1}__`;
+      });
+
+      // Match paired tags (innermost first for nested structures)
+      result = result.replace(
+        /<([a-zA-Z][^\/\s>]*)(?:\s+[^>]*)?>((?:(?!<\1[^>]*>|<\/\1>)[\s\S])*?)<\/\1>/g,
+        (match) => {
+          htmlBlocks.push(match);
+          foundMatch = true;
+          return `__HTML_${htmlBlocks.length - 1}__`;
+        },
+      );
+
+      if (!foundMatch) break;
+      iteration++;
+    }
+
+    return result;
+  }
+
+  textWithPlaceholders = extractHtmlTags(textWithPlaceholders);
 
   // Stage 0c: Process and preserve inline code blocks (`...`)
   textWithPlaceholders = textWithPlaceholders.replace(/(`[^`\n]*?`)/g, (match) => {
@@ -191,9 +221,30 @@ export function simplifyMarkdown(text: string): string {
   finalResult = finalResult.replace(/__OOC_(\d+)__/g, (_match, index) => {
     return oocBlocks[parseInt(index, 10)];
   });
-  finalResult = finalResult.replace(/__HTML_(\d+)__/g, (_match, index) => {
-    return htmlBlocks[parseInt(index, 10)];
-  });
+  // Iteratively restore HTML blocks to handle nesting
+  let iterations = 0;
+  // Max iterations to prevent infinite loops, e.g., if a block somehow contained its own placeholder.
+  const maxHtmlRestoreIterations = htmlBlocks.length > 0 ? htmlBlocks.length * 2 + 5 : 10;
+  let previousHtmlPassResult;
+
+  do {
+    previousHtmlPassResult = finalResult;
+    finalResult = finalResult.replace(/__HTML_(\d+)__/g, (_match, indexStr) => {
+      const htmlBlockIndex = parseInt(indexStr, 10);
+      if (htmlBlockIndex >= 0 && htmlBlockIndex < htmlBlocks.length) {
+        return htmlBlocks[htmlBlockIndex];
+      }
+      // If index is out of bounds (should not happen with correct placeholder generation),
+      // return the original placeholder to avoid errors and make debugging easier.
+      return _match;
+    });
+    iterations++;
+  } while (finalResult !== previousHtmlPassResult && iterations < maxHtmlRestoreIterations);
+
+  // Optional: Warn if max iterations were hit, indicating a possible issue.
+  // if (iterations >= maxHtmlRestoreIterations && htmlBlocks.length > 0) {
+  //   console.warn('Markdown-Fixer: Max HTML restoration iterations reached. Result might be incomplete.');
+  // }
 
   return finalResult;
 }
