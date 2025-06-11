@@ -6,6 +6,83 @@ interface SecurityViolation {
   message: string;
 }
 
+// Common HTML event handlers that can execute JavaScript
+const DANGEROUS_EVENT_HANDLERS = [
+  'onabort',
+  'onafterprint',
+  'onbeforeprint',
+  'onbeforeunload',
+  'onblur',
+  'oncanplay',
+  'oncanplaythrough',
+  'onchange',
+  'onclick',
+  'oncontextmenu',
+  'oncopy',
+  'oncuechange',
+  'oncut',
+  'ondblclick',
+  'ondrag',
+  'ondragend',
+  'ondragenter',
+  'ondragleave',
+  'ondragover',
+  'ondragstart',
+  'ondrop',
+  'ondurationchange',
+  'onemptied',
+  'onended',
+  'onerror',
+  'onfocus',
+  'onformchange',
+  'onforminput',
+  'onhashchange',
+  'oninput',
+  'oninvalid',
+  'onkeydown',
+  'onkeypress',
+  'onkeyup',
+  'onload',
+  'onloadeddata',
+  'onloadedmetadata',
+  'onloadstart',
+  'onmessage',
+  'onmousedown',
+  'onmousemove',
+  'onmouseout',
+  'onmouseover',
+  'onmouseup',
+  'onmousewheel',
+  'onoffline',
+  'ononline',
+  'onpagehide',
+  'onpageshow',
+  'onpaste',
+  'onpause',
+  'onplay',
+  'onplaying',
+  'onpopstate',
+  'onprogress',
+  'onratechange',
+  'onreadystatechange',
+  'onredo',
+  'onresize',
+  'onscroll',
+  'onseeked',
+  'onseeking',
+  'onselect',
+  'onstalled',
+  'onstorage',
+  'onsubmit',
+  'onsuspend',
+  'ontimeupdate',
+  'onundo',
+  'onunload',
+  'onvolumechange',
+  'onwaiting',
+  'onwheel',
+];
+
 interface SecurityAnalysisResult {
   safe: boolean;
   violations: SecurityViolation[];
@@ -81,6 +158,59 @@ export class JavaScriptSecurityAnalyzer {
       ];
       return { safe: false, violations };
     }
+  }
+  /**
+   * Extract and analyze inline event handlers from an HTML element
+   */
+  async analyzeElementEventHandlers(element: Element): Promise<SecurityViolation[]> {
+    const violations: SecurityViolation[] = [];
+    const attributes = Array.from(element.attributes);
+
+    for (const attr of attributes) {
+      const attrName = attr.name.toLowerCase();
+
+      // Check if it's an event handler attribute
+      if (DANGEROUS_EVENT_HANDLERS.includes(attrName)) {
+        const eventCode = attr.value.trim();
+
+        if (eventCode) {
+          // Analyze the event handler code using the same security analysis
+          const analysis = await this.analyzeScript(eventCode);
+
+          if (analysis.sanitizedCode && analysis.sanitizedCode !== eventCode) {
+            // If code was sanitized, update the attribute
+            attr.value = analysis.sanitizedCode;
+
+            // Add warnings if any
+            violations.push(
+              ...analysis.violations.map((v) => ({
+                ...v,
+                type: `inline_event_handler:${attrName}`,
+                node: `<${element.tagName.toLowerCase()}>`,
+                message: `Sanitized ${attrName} event handler: ${v.message}`,
+              })),
+            );
+          }
+        }
+      }
+    }
+
+    return violations;
+  }
+
+  /**
+   * Recursively analyze all event handlers in a document/element
+   */
+  async analyzeAllEventHandlers(root: Element | Document): Promise<SecurityViolation[]> {
+    const violations: SecurityViolation[] = [];
+    const elements = root.querySelectorAll('*');
+
+    for (const element of elements) {
+      const elementViolations = await this.analyzeElementEventHandlers(element);
+      violations.push(...elementViolations);
+    }
+
+    return violations;
   }
 }
 

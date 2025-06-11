@@ -257,9 +257,9 @@ async function formatMessage(id: number) {
     }
   }
 
-  if (settingsManager.getSettings().includeHTML) {
+  if (settings.includeHTML) {
     const htmlResult = postProcess(id, message.name, message.mes);
-    await st_updateMessageHTML(id, htmlResult, settingsManager.getSettings());
+    await st_updateMessageHTML(id, htmlResult, settings);
   }
 }
 

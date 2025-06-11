@@ -54,10 +54,6 @@ export async function st_updateMessageHTML(
   const parser = new DOMParser();
   const doc = parser.parseFromString(message, 'text/html');
 
-  // Extract and analyze all script elements from the parsed document
-  const scripts = doc.querySelectorAll('script');
-  const executableScripts: string[] = [];
-
   const securityAnalyzer = new JavaScriptSecurityAnalyzer({
     enableJSAnalysis: settings.enableJSAnalysis,
     allowedAPIs: settings.allowedAPIs,
@@ -65,6 +61,19 @@ export async function st_updateMessageHTML(
     maxScriptLength: settings.maxScriptLength,
     allowObfuscation: settings.allowObfuscation,
   });
+
+  // First, analyze all inline event handlers in the document
+  const eventHandlerViolations = await securityAnalyzer.analyzeAllEventHandlers(doc);
+  if (eventHandlerViolations.length > 0) {
+    console.warn(
+      `Found ${eventHandlerViolations.length} event handler security issues in message ${messageId}:`,
+      eventHandlerViolations,
+    );
+  }
+
+  // Extract and analyze all script elements from the parsed document
+  const scripts = doc.querySelectorAll('script');
+  const executableScripts: string[] = [];
 
   for (const script of scripts) {
     const scriptContent = script.innerHTML;
