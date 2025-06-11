@@ -288,6 +288,7 @@ async function formatMessage(id: number) {
   if (settings.enableMarkdownSimplification) {
     const newMessageText = simplifyMarkdown(message.mes);
     if (newMessageText !== message.mes) {
+      message.mes = newMessageText;
       st_updateMessageBlock(id, message);
       await globalContext.saveChat();
     }
