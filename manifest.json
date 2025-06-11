@@ -1,5 +1,5 @@
 {
-    "display_name": "Markdown Fixer",
+    "display_name": "WeatherPack",
     "loading_order": 300,
     "requires": [],
     "optional": [],
@@ -7,5 +7,5 @@
     "css": "dist/style.css",
     "author": "bmen25124",
     "version": "0.1.1",
-    "homePage": "https://github.com/bmen25124/SillyTavern-Markdown-Fixer"
+    "homePage": "https://github.com/bmen25124/SillyTavern-WeatherPack"
 }

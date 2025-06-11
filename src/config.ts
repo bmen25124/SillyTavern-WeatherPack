@@ -21,7 +21,7 @@ export interface ExtensionSettings {
   allowObfuscation: boolean;
 }
 
-export const extensionName = 'SillyTavern-Markdown-Fixer';
+export const extensionName = 'SillyTavern-WeatherPack';
 
 export function st_updateMessageBlock(messageId: number, message: object, { rerenderMessage = true } = {}): void {
   updateMessageBlock(messageId, message, { rerenderMessage });

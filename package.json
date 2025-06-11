@@ -1,5 +1,5 @@
 {
-    "name": "typescript-web-project",
+    "name": "sillytavern-weatherpack",
     "version": "1.0.0",
     "description": "A web application using pure JS and SCSS.",
     "type": "module",

@@ -1,4 +1,4 @@
-# SillyTavern 
+# SillyTavern WeatherPack
 
 A [SillyTavern](https://docs.sillytavern.app/) extension that automatically fixes and normalizes markdown formatting in chat messages.
 
@@ -6,7 +6,7 @@ A [SillyTavern](https://docs.sillytavern.app/) extension that automatically fixe
 
 - **Markdown Simplification**: Normalizes italic formatting by removing excess asterisks and applying consistent styling. It is especially useful for Deepseek.
 - **Quote Processing**: Handles quoted dialogue properly without adding italic formatting
-- **HTML Processing**: Safely processes HTML content with JavaScript security analysis
+- **HTML Processing**: Safely processes HTML content with JavaScript security analysis (Read [Security](#security) section)
 - **Auto Mode**: Automatically applies fixes to incoming responses, outgoing messages, or both
 
 ## Installation
@@ -14,7 +14,7 @@ A [SillyTavern](https://docs.sillytavern.app/) extension that automatically fixe
 Install via the SillyTavern extension installer:
 
 ```txt
-https://github.com/bmen25124/SillyTavern-Markdown-Fixer
+https://github.com/bmen25124/SillyTavern-WeatherPack
 ```
 
 ## Usage
@@ -37,7 +37,7 @@ Configure the extension to automatically process messages:
 
 ### Settings
 
-Access settings through Extensions > Markdown Fixer:
+Access settings through Extensions > WeatherPack:
 
 - **Enable Markdown Simplification**: Toggle markdown processing
 - **Include HTML**: Process HTML content in messages
@@ -77,3 +77,9 @@ The following content types are preserved without modification:
 ## Security
 
 The extension includes JavaScript security analysis to safely process HTML content while blocking potentially harmful scripts. You need to install [JS-Analyzer](https://github.com/bmen25124/SillyTavern-JS-Analyzer) before using this feature.
+
+## FAQ
+
+> I only here for the markdown processing, what the hell is HTML/JS stuff?
+
+You don't need to worry about it. HTML processing is disabled by default.

@@ -26,7 +26,7 @@ const defaultSettings: ExtensionSettings = {
 };
 
 // Keys for extension settings
-const EXTENSION_KEY = 'markdownFixer';
+const EXTENSION_KEY = 'weatherPack';
 
 const globalContext = SillyTavern.getContext();
 const settingsManager = new ExtensionSettingsManager<ExtensionSettings>(EXTENSION_KEY, defaultSettings);
@@ -37,7 +37,7 @@ const outgoingTypes = [AutoModeOptions.INPUT, AutoModeOptions.BOTH];
 async function initUI() {
   // Render and append settings UI
   const settingsHtml = await globalContext.renderExtensionTemplateAsync(
-    `third-party/SillyTavern-Markdown-Fixer`,
+    `third-party/SillyTavern-WeatherPack`,
     'templates/settings',
     {},
   );
@@ -50,8 +50,8 @@ async function initUI() {
   await initSettingsUI();
 
   const showFixButton = document.createElement('div');
-  showFixButton.title = 'Markdown Fixer';
-  showFixButton.className = 'mes_button mes_markdown_fix_button fa-solid fa-screwdriver interactable';
+  showFixButton.title = 'WeatherPack';
+  showFixButton.className = 'mes_button mes_weatherpack_button fa-solid fa-screwdriver interactable';
   showFixButton.tabIndex = 0;
   const messageTemplate = document.querySelector('#message_template .mes_buttons .extraMesButtons');
   if (messageTemplate) {
@@ -60,7 +60,7 @@ async function initUI() {
 
   document.addEventListener('click', async function (event) {
     const target = event.target as HTMLElement;
-    if (target.classList.contains('mes_markdown_fix_button')) {
+    if (target.classList.contains('mes_weatherpack_button')) {
       const messageBlock = target.closest('.mes');
       if (messageBlock) {
         const messageId = Number(messageBlock.getAttribute('mesid'));
@@ -95,7 +95,7 @@ async function initUI() {
 }
 
 async function initSettingsUI() {
-  const settingsContainer = document.querySelector('.markdown-fixer-settings');
+  const settingsContainer = document.querySelector('.weatherpack-settings');
   if (!settingsContainer) {
     console.error('Settings container not found');
     return;
@@ -104,7 +104,7 @@ async function initSettingsUI() {
   const settings = settingsManager.getSettings();
 
   // Auto Mode
-  const autoModeSelect = settingsContainer.querySelector('#markdown_fixer_auto_mode') as HTMLSelectElement;
+  const autoModeSelect = settingsContainer.querySelector('#weatherpack_auto_mode') as HTMLSelectElement;
   if (autoModeSelect) {
     autoModeSelect.value = settings.autoMode;
     autoModeSelect.addEventListener('change', () => {
@@ -115,7 +115,7 @@ async function initSettingsUI() {
 
   // Enable Markdown Simplification
   const enableSimplificationCheckbox = settingsContainer.querySelector(
-    '#markdown_fixer_enable_simplification',
+    '#weatherpack_enable_simplification',
   ) as HTMLInputElement;
   if (enableSimplificationCheckbox) {
     enableSimplificationCheckbox.checked = settings.enableMarkdownSimplification;
@@ -126,7 +126,7 @@ async function initSettingsUI() {
   }
 
   // Include HTML
-  const includeHTMLCheckbox = settingsContainer.querySelector('#markdown_fixer_include_html') as HTMLInputElement;
+  const includeHTMLCheckbox = settingsContainer.querySelector('#weatherpack_include_html') as HTMLInputElement;
   if (includeHTMLCheckbox) {
     includeHTMLCheckbox.checked = settings.includeHTML;
     includeHTMLCheckbox.addEventListener('change', async () => {
@@ -150,7 +150,7 @@ async function initSettingsUI() {
 
   // Include Code Blocks
   const includeCodeBlocksCheckbox = settingsContainer.querySelector(
-    '#markdown_fixer_include_code_blocks',
+    '#weatherpack_include_code_blocks',
   ) as HTMLInputElement;
   if (includeCodeBlocksCheckbox) {
     includeCodeBlocksCheckbox.checked = settings.includeCodeBlocks;
@@ -162,7 +162,7 @@ async function initSettingsUI() {
 
   // Enable JS Analysis
   const enableJSAnalysisCheckbox = settingsContainer.querySelector(
-    '#markdown_fixer_enable_js_analysis',
+    '#weatherpack_enable_js_analysis',
   ) as HTMLInputElement;
   if (enableJSAnalysisCheckbox) {
     enableJSAnalysisCheckbox.checked = settings.enableJSAnalysis;
@@ -187,7 +187,7 @@ async function initSettingsUI() {
 
   // Allow Obfuscation
   const allowObfuscationCheckbox = settingsContainer.querySelector(
-    '#markdown_fixer_allow_obfuscation',
+    '#weatherpack_allow_obfuscation',
   ) as HTMLInputElement;
   if (allowObfuscationCheckbox) {
     allowObfuscationCheckbox.checked = settings.allowObfuscation;
@@ -198,7 +198,7 @@ async function initSettingsUI() {
   }
 
   // Max Script Length
-  const maxScriptLengthInput = settingsContainer.querySelector('#markdown_fixer_max_script_length') as HTMLInputElement;
+  const maxScriptLengthInput = settingsContainer.querySelector('#weatherpack_max_script_length') as HTMLInputElement;
   if (maxScriptLengthInput) {
     maxScriptLengthInput.value = settings.maxScriptLength.toString();
     maxScriptLengthInput.addEventListener('change', () => {
@@ -211,7 +211,7 @@ async function initSettingsUI() {
   }
 
   // Allowed APIs
-  const allowedAPIsTextarea = settingsContainer.querySelector('#markdown_fixer_allowed_apis') as HTMLTextAreaElement;
+  const allowedAPIsTextarea = settingsContainer.querySelector('#weatherpack_allowed_apis') as HTMLTextAreaElement;
   if (allowedAPIsTextarea) {
     allowedAPIsTextarea.value = settings.allowedAPIs.join(', ');
     allowedAPIsTextarea.addEventListener('blur', () => {
@@ -225,7 +225,7 @@ async function initSettingsUI() {
   }
 
   // Blocked APIs
-  const blockedAPIsTextarea = settingsContainer.querySelector('#markdown_fixer_blocked_apis') as HTMLTextAreaElement;
+  const blockedAPIsTextarea = settingsContainer.querySelector('#weatherpack_blocked_apis') as HTMLTextAreaElement;
   if (blockedAPIsTextarea) {
     blockedAPIsTextarea.value = settings.blockedAPIs.join(', ');
     blockedAPIsTextarea.addEventListener('blur', () => {
@@ -239,12 +239,12 @@ async function initSettingsUI() {
   }
 
   // Reset Button
-  const resetButton = settingsContainer.querySelector('#markdown_fixer_reset_button') as HTMLButtonElement;
+  const resetButton = settingsContainer.querySelector('#weatherpack_reset_button') as HTMLButtonElement;
   if (resetButton) {
     resetButton.addEventListener('click', async () => {
       const confirmed = await globalContext.Popup.show.confirm(
         'Reset Settings',
-        'This will reset all Markdown Fixer settings to their default values. Are you sure?',
+        'This will reset all WeatherPack settings to their default values. Are you sure?',
       );
 
       if (confirmed) {
@@ -259,45 +259,45 @@ async function resetSettingsToDefaults() {
   settingsManager.resetSettings();
 
   // Refresh the UI with default values
-  const settingsContainer = document.querySelector('.markdown-fixer-settings');
+  const settingsContainer = document.querySelector('.weatherpack-settings');
   if (!settingsContainer) return;
 
   const settings = settingsManager.getSettings();
 
   // Update all UI elements with default values
-  const autoModeSelect = settingsContainer.querySelector('#markdown_fixer_auto_mode') as HTMLSelectElement;
+  const autoModeSelect = settingsContainer.querySelector('#weatherpack_auto_mode') as HTMLSelectElement;
   if (autoModeSelect) autoModeSelect.value = settings.autoMode;
 
   const enableSimplificationCheckbox = settingsContainer.querySelector(
-    '#markdown_fixer_enable_simplification',
+    '#weatherpack_enable_simplification',
   ) as HTMLInputElement;
   if (enableSimplificationCheckbox) enableSimplificationCheckbox.checked = settings.enableMarkdownSimplification;
 
-  const includeHTMLCheckbox = settingsContainer.querySelector('#markdown_fixer_include_html') as HTMLInputElement;
+  const includeHTMLCheckbox = settingsContainer.querySelector('#weatherpack_include_html') as HTMLInputElement;
   if (includeHTMLCheckbox) includeHTMLCheckbox.checked = settings.includeHTML;
 
   const includeCodeBlocksCheckbox = settingsContainer.querySelector(
-    '#markdown_fixer_include_code_blocks',
+    '#weatherpack_include_code_blocks',
   ) as HTMLInputElement;
   if (includeCodeBlocksCheckbox) includeCodeBlocksCheckbox.checked = settings.includeCodeBlocks;
 
   const enableJSAnalysisCheckbox = settingsContainer.querySelector(
-    '#markdown_fixer_enable_js_analysis',
+    '#weatherpack_enable_js_analysis',
   ) as HTMLInputElement;
   if (enableJSAnalysisCheckbox) enableJSAnalysisCheckbox.checked = settings.enableJSAnalysis;
 
   const allowObfuscationCheckbox = settingsContainer.querySelector(
-    '#markdown_fixer_allow_obfuscation',
+    '#weatherpack_allow_obfuscation',
   ) as HTMLInputElement;
   if (allowObfuscationCheckbox) allowObfuscationCheckbox.checked = settings.allowObfuscation;
 
-  const maxScriptLengthInput = settingsContainer.querySelector('#markdown_fixer_max_script_length') as HTMLInputElement;
+  const maxScriptLengthInput = settingsContainer.querySelector('#weatherpack_max_script_length') as HTMLInputElement;
   if (maxScriptLengthInput) maxScriptLengthInput.value = settings.maxScriptLength.toString();
 
-  const allowedAPIsTextarea = settingsContainer.querySelector('#markdown_fixer_allowed_apis') as HTMLTextAreaElement;
+  const allowedAPIsTextarea = settingsContainer.querySelector('#weatherpack_allowed_apis') as HTMLTextAreaElement;
   if (allowedAPIsTextarea) allowedAPIsTextarea.value = settings.allowedAPIs.join(', ');
 
-  const blockedAPIsTextarea = settingsContainer.querySelector('#markdown_fixer_blocked_apis') as HTMLTextAreaElement;
+  const blockedAPIsTextarea = settingsContainer.querySelector('#weatherpack_blocked_apis') as HTMLTextAreaElement;
   if (blockedAPIsTextarea) blockedAPIsTextarea.value = settings.blockedAPIs.join(', ');
 
   st_echo('info', 'Settings have been reset to defaults');

@@ -230,10 +230,9 @@ export function simplifyMarkdown(text: string): string {
     iterations++;
   } while (finalResult !== previousHtmlPassResult && iterations < maxHtmlRestoreIterations);
 
-  // Optional: Warn if max iterations were hit, indicating a possible issue.
-  // if (iterations >= maxHtmlRestoreIterations && htmlBlocks.length > 0) {
-  //   console.warn('Markdown-Fixer: Max HTML restoration iterations reached. Result might be incomplete.');
-  // }
+  if (iterations >= maxHtmlRestoreIterations && htmlBlocks.length > 0) {
+    console.warn('WeatherPack: Max HTML restoration iterations reached. Result might be incomplete.');
+  }
 
   return finalResult;
 }
