@@ -84,6 +84,6 @@ The extension includes JavaScript security analysis to safely process HTML conte
 
 You don't need to worry about it. HTML processing is disabled by default.
 
-> What is the cool stuff in the video?
+> What is the cool cat UI in the video?
 
 It is just HTML/CSS/JS blocks. See original post [here](https://www.reddit.com/r/SillyTavernAI/comments/1l7bsd2/some_html_animations_and_interactive_elements/). [My comment](https://www.reddit.com/r/SillyTavernAI/comments/1l7bsd2/comment/mx0bo3p/)
