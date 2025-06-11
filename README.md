@@ -26,7 +26,7 @@ Click the screwdriver button (🔧) next to any message to apply markdown fixes 
 
 ### Demo
 
-
+https://github.com/user-attachments/assets/eeb5b442-5e82-4408-8753-070b11db1ad5
 
 ### Auto Mode
 Configure the extension to automatically process messages:
