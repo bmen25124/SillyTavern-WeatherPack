@@ -71,25 +71,32 @@ async function initUI() {
 
   const settings = settingsManager.getSettings();
   globalContext.eventSource.on(EventNames.MESSAGE_UPDATED, async (messageId: number) => {
-    if (incomingTypes.includes(settings.autoMode)) {
+    const currentSettings = settingsManager.getSettings();
+    if (incomingTypes.includes(currentSettings.autoMode)) {
+      await formatMessage(messageId);
     }
   });
 
   globalContext.eventSource.on(EventNames.IMPERSONATE_READY, async (messageId: number) => {
-    if (outgoingTypes.includes(settings.autoMode)) {
+    const currentSettings = settingsManager.getSettings();
+    if (outgoingTypes.includes(currentSettings.autoMode)) {
+      await formatMessage(messageId);
     }
   });
 
   // @ts-ignore
   globalContext.eventSource.makeFirst(EventNames.CHARACTER_MESSAGE_RENDERED, async (messageId: number) => {
-    if (incomingTypes.includes(settings.autoMode)) {
-      // await formatMessage(messageId);
-      // await globalContext.saveChat();
+    const currentSettings = settingsManager.getSettings();
+    if (incomingTypes.includes(currentSettings.autoMode)) {
+      await formatMessage(messageId);
     }
   });
+
   // @ts-ignore
   globalContext.eventSource.makeFirst(EventNames.USER_MESSAGE_RENDERED, async (messageId: number) => {
-    if (outgoingTypes.includes(settings.autoMode)) {
+    const currentSettings = settingsManager.getSettings();
+    if (outgoingTypes.includes(currentSettings.autoMode)) {
+      await formatMessage(messageId);
     }
   });
 }
