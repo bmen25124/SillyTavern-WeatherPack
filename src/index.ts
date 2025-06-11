@@ -35,12 +35,31 @@ const incomingTypes = [AutoModeOptions.RESPONSES, AutoModeOptions.BOTH];
 const outgoingTypes = [AutoModeOptions.INPUT, AutoModeOptions.BOTH];
 
 async function initUI() {
+  // Render and append settings UI
+  const settingsHtml = await globalContext.renderExtensionTemplateAsync(
+    `third-party/SillyTavern-Markdown-Fixer`,
+    'templates/settings',
+    {},
+  );
+  const extensionsSettings = document.getElementById('extensions_settings');
+  if (extensionsSettings) {
+    extensionsSettings.insertAdjacentHTML('beforeend', settingsHtml);
+  }
+
+  // Initialize settings UI
+  await initSettingsUI();
+
   // Add process all messages button to options menu
-  const processAllButton = $('<a class="interactable">Process all messages</a>');
-  $('#options .options-content').append(processAllButton);
+  const processAllButton = document.createElement('a');
+  processAllButton.className = 'interactable';
+  processAllButton.textContent = 'Process all messages';
+  const optionsContent = document.querySelector('#options .options-content');
+  if (optionsContent) {
+    optionsContent.appendChild(processAllButton);
+  }
 
   // Add click handler for process all button
-  processAllButton.on('click', async function () {
+  processAllButton.addEventListener('click', async function () {
     if (
       !(await globalContext.Popup.show.confirm('This will process all messages in the chat. Do you want to continue?'))
     ) {
@@ -49,15 +68,24 @@ async function initUI() {
     await processAllMessages();
   });
 
-  const showFixButton = $(
-    `<div title="Markdown Fixer" class="mes_button mes_markdown_fix_button fa-solid fa-screwdriver interactable" tabindex="0"></div>`,
-  );
-  $('#message_template .mes_buttons .extraMesButtons').prepend(showFixButton);
-  $(document).on('click', '.mes_markdown_fix_button', async function () {
-    const messageBlock = $(this).closest('.mes');
-    const messageId = Number(messageBlock.attr('mesid'));
-    await formatMessage(messageId);
-    await globalContext.saveChat();
+  const showFixButton = document.createElement('div');
+  showFixButton.title = 'Markdown Fixer';
+  showFixButton.className = 'mes_button mes_markdown_fix_button fa-solid fa-screwdriver interactable';
+  showFixButton.tabIndex = 0;
+  const messageTemplate = document.querySelector('#message_template .mes_buttons .extraMesButtons');
+  if (messageTemplate) {
+    messageTemplate.prepend(showFixButton);
+  }
+
+  document.addEventListener('click', async function (event) {
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('mes_markdown_fix_button')) {
+      const messageBlock = target.closest('.mes');
+      if (messageBlock) {
+        const messageId = Number(messageBlock.getAttribute('mesid'));
+        await formatMessage(messageId);
+      }
+    }
   });
 
   const settings = settingsManager.getSettings();
@@ -85,6 +113,125 @@ async function initUI() {
   });
 }
 
+async function initSettingsUI() {
+  const settingsContainer = document.querySelector('.markdown-fixer-settings');
+  if (!settingsContainer) {
+    console.error('Settings container not found');
+    return;
+  }
+
+  const settings = settingsManager.getSettings();
+
+  // Auto Mode
+  const autoModeSelect = settingsContainer.querySelector('#markdown_fixer_auto_mode') as HTMLSelectElement;
+  if (autoModeSelect) {
+    autoModeSelect.value = settings.autoMode;
+    autoModeSelect.addEventListener('change', () => {
+      settings.autoMode = autoModeSelect.value as AutoModeOptions;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Enable Markdown Simplification
+  const enableSimplificationCheckbox = settingsContainer.querySelector(
+    '#markdown_fixer_enable_simplification',
+  ) as HTMLInputElement;
+  if (enableSimplificationCheckbox) {
+    enableSimplificationCheckbox.checked = settings.enableMarkdownSimplification;
+    enableSimplificationCheckbox.addEventListener('change', () => {
+      settings.enableMarkdownSimplification = enableSimplificationCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Include HTML
+  const includeHTMLCheckbox = settingsContainer.querySelector('#markdown_fixer_include_html') as HTMLInputElement;
+  if (includeHTMLCheckbox) {
+    includeHTMLCheckbox.checked = settings.includeHTML;
+    includeHTMLCheckbox.addEventListener('change', () => {
+      settings.includeHTML = includeHTMLCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Include Code Blocks
+  const includeCodeBlocksCheckbox = settingsContainer.querySelector(
+    '#markdown_fixer_include_code_blocks',
+  ) as HTMLInputElement;
+  if (includeCodeBlocksCheckbox) {
+    includeCodeBlocksCheckbox.checked = settings.includeCodeBlocks;
+    includeCodeBlocksCheckbox.addEventListener('change', () => {
+      settings.includeCodeBlocks = includeCodeBlocksCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Enable JS Analysis
+  const enableJSAnalysisCheckbox = settingsContainer.querySelector(
+    '#markdown_fixer_enable_js_analysis',
+  ) as HTMLInputElement;
+  if (enableJSAnalysisCheckbox) {
+    enableJSAnalysisCheckbox.checked = settings.enableJSAnalysis;
+    enableJSAnalysisCheckbox.addEventListener('change', () => {
+      settings.enableJSAnalysis = enableJSAnalysisCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Allow Obfuscation
+  const allowObfuscationCheckbox = settingsContainer.querySelector(
+    '#markdown_fixer_allow_obfuscation',
+  ) as HTMLInputElement;
+  if (allowObfuscationCheckbox) {
+    allowObfuscationCheckbox.checked = settings.allowObfuscation;
+    allowObfuscationCheckbox.addEventListener('change', () => {
+      settings.allowObfuscation = allowObfuscationCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Max Script Length
+  const maxScriptLengthInput = settingsContainer.querySelector('#markdown_fixer_max_script_length') as HTMLInputElement;
+  if (maxScriptLengthInput) {
+    maxScriptLengthInput.value = settings.maxScriptLength.toString();
+    maxScriptLengthInput.addEventListener('change', () => {
+      const value = parseInt(maxScriptLengthInput.value);
+      if (!isNaN(value) && value > 0) {
+        settings.maxScriptLength = value;
+        settingsManager.saveSettings();
+      }
+    });
+  }
+
+  // Allowed APIs
+  const allowedAPIsTextarea = settingsContainer.querySelector('#markdown_fixer_allowed_apis') as HTMLTextAreaElement;
+  if (allowedAPIsTextarea) {
+    allowedAPIsTextarea.value = settings.allowedAPIs.join(', ');
+    allowedAPIsTextarea.addEventListener('blur', () => {
+      const apis = allowedAPIsTextarea.value
+        .split(',')
+        .map((api) => api.trim())
+        .filter((api) => api.length > 0);
+      settings.allowedAPIs = apis;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Blocked APIs
+  const blockedAPIsTextarea = settingsContainer.querySelector('#markdown_fixer_blocked_apis') as HTMLTextAreaElement;
+  if (blockedAPIsTextarea) {
+    blockedAPIsTextarea.value = settings.blockedAPIs.join(', ');
+    blockedAPIsTextarea.addEventListener('blur', () => {
+      const apis = blockedAPIsTextarea.value
+        .split(',')
+        .map((api) => api.trim())
+        .filter((api) => api.length > 0);
+      settings.blockedAPIs = apis;
+      settingsManager.saveSettings();
+    });
+  }
+}
+
 async function processAllMessages() {
   const chat = globalContext.chat;
   for (let i = 0; i < chat.length; i++) {
@@ -106,6 +253,7 @@ async function formatMessage(id: number) {
     const newMessageText = simplifyMarkdown(message.mes);
     if (newMessageText !== message.mes) {
       st_updateMessageBlock(id, message);
+      await globalContext.saveChat();
     }
   }
 
