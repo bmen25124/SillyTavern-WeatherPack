@@ -129,7 +129,20 @@ async function initSettingsUI() {
   const includeHTMLCheckbox = settingsContainer.querySelector('#markdown_fixer_include_html') as HTMLInputElement;
   if (includeHTMLCheckbox) {
     includeHTMLCheckbox.checked = settings.includeHTML;
-    includeHTMLCheckbox.addEventListener('change', () => {
+    includeHTMLCheckbox.addEventListener('change', async () => {
+      // Show confirmation when enabling HTML processing
+      if (includeHTMLCheckbox.checked && !settings.includeHTML) {
+        const confirmed = await globalContext.Popup.show.confirm(
+          'Enable HTML Processing',
+          "Enabling HTML processing can be dangerous and may execute arbitrary code. If you don't know what you are doing, don't do it. Are you sure you want to continue?",
+        );
+
+        if (!confirmed) {
+          includeHTMLCheckbox.checked = false;
+          return;
+        }
+      }
+
       settings.includeHTML = includeHTMLCheckbox.checked;
       settingsManager.saveSettings();
     });
@@ -153,7 +166,20 @@ async function initSettingsUI() {
   ) as HTMLInputElement;
   if (enableJSAnalysisCheckbox) {
     enableJSAnalysisCheckbox.checked = settings.enableJSAnalysis;
-    enableJSAnalysisCheckbox.addEventListener('change', () => {
+    enableJSAnalysisCheckbox.addEventListener('change', async () => {
+      // Show confirmation when disabling JavaScript security analysis
+      if (!enableJSAnalysisCheckbox.checked && settings.enableJSAnalysis) {
+        const confirmed = await globalContext.Popup.show.confirm(
+          'Disable JavaScript Security Analysis',
+          "Disabling JavaScript security analysis removes important safety checks and may allow dangerous code execution. If you don't know what you are doing, don't do it. Are you sure you want to continue?",
+        );
+
+        if (!confirmed) {
+          enableJSAnalysisCheckbox.checked = true;
+          return;
+        }
+      }
+
       settings.enableJSAnalysis = enableJSAnalysisCheckbox.checked;
       settingsManager.saveSettings();
     });
