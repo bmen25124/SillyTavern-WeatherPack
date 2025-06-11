@@ -1,1 +1,16 @@
-
+.markdown-fixer-settings .markdown-fixer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.markdown-fixer-settings .setting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.markdown-fixer-settings .setting-row:last-child {
+  margin-top: 10px;
+}
+.markdown-fixer-settings .setting-row button {
+  align-self: flex-start;
+}

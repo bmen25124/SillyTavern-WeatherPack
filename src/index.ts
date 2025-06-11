@@ -49,25 +49,6 @@ async function initUI() {
   // Initialize settings UI
   await initSettingsUI();
 
-  // Add process all messages button to options menu
-  const processAllButton = document.createElement('a');
-  processAllButton.className = 'interactable';
-  processAllButton.textContent = 'Process all messages';
-  const optionsContent = document.querySelector('#options .options-content');
-  if (optionsContent) {
-    optionsContent.appendChild(processAllButton);
-  }
-
-  // Add click handler for process all button
-  processAllButton.addEventListener('click', async function () {
-    if (
-      !(await globalContext.Popup.show.confirm('This will process all messages in the chat. Do you want to continue?'))
-    ) {
-      return;
-    }
-    await processAllMessages();
-  });
-
   const showFixButton = document.createElement('div');
   showFixButton.title = 'Markdown Fixer';
   showFixButton.className = 'mes_button mes_markdown_fix_button fa-solid fa-screwdriver interactable';
@@ -230,15 +211,70 @@ async function initSettingsUI() {
       settingsManager.saveSettings();
     });
   }
+
+  // Reset Button
+  const resetButton = settingsContainer.querySelector('#markdown_fixer_reset_button') as HTMLButtonElement;
+  if (resetButton) {
+    resetButton.addEventListener('click', async () => {
+      const confirmed = await globalContext.Popup.show.confirm(
+        'Reset Settings',
+        'This will reset all Markdown Fixer settings to their default values. Are you sure?',
+      );
+
+      if (confirmed) {
+        await resetSettingsToDefaults();
+      }
+    });
+  }
 }
 
-async function processAllMessages() {
-  const chat = globalContext.chat;
-  for (let i = 0; i < chat.length; i++) {
-    await formatMessage(i);
-  }
-  await globalContext.saveChat();
-  st_echo('info', 'Processed all messages');
+async function resetSettingsToDefaults() {
+  // Reset settings to defaults
+  settingsManager.resetSettings();
+
+  // Refresh the UI with default values
+  const settingsContainer = document.querySelector('.markdown-fixer-settings');
+  if (!settingsContainer) return;
+
+  const settings = settingsManager.getSettings();
+
+  // Update all UI elements with default values
+  const autoModeSelect = settingsContainer.querySelector('#markdown_fixer_auto_mode') as HTMLSelectElement;
+  if (autoModeSelect) autoModeSelect.value = settings.autoMode;
+
+  const enableSimplificationCheckbox = settingsContainer.querySelector(
+    '#markdown_fixer_enable_simplification',
+  ) as HTMLInputElement;
+  if (enableSimplificationCheckbox) enableSimplificationCheckbox.checked = settings.enableMarkdownSimplification;
+
+  const includeHTMLCheckbox = settingsContainer.querySelector('#markdown_fixer_include_html') as HTMLInputElement;
+  if (includeHTMLCheckbox) includeHTMLCheckbox.checked = settings.includeHTML;
+
+  const includeCodeBlocksCheckbox = settingsContainer.querySelector(
+    '#markdown_fixer_include_code_blocks',
+  ) as HTMLInputElement;
+  if (includeCodeBlocksCheckbox) includeCodeBlocksCheckbox.checked = settings.includeCodeBlocks;
+
+  const enableJSAnalysisCheckbox = settingsContainer.querySelector(
+    '#markdown_fixer_enable_js_analysis',
+  ) as HTMLInputElement;
+  if (enableJSAnalysisCheckbox) enableJSAnalysisCheckbox.checked = settings.enableJSAnalysis;
+
+  const allowObfuscationCheckbox = settingsContainer.querySelector(
+    '#markdown_fixer_allow_obfuscation',
+  ) as HTMLInputElement;
+  if (allowObfuscationCheckbox) allowObfuscationCheckbox.checked = settings.allowObfuscation;
+
+  const maxScriptLengthInput = settingsContainer.querySelector('#markdown_fixer_max_script_length') as HTMLInputElement;
+  if (maxScriptLengthInput) maxScriptLengthInput.value = settings.maxScriptLength.toString();
+
+  const allowedAPIsTextarea = settingsContainer.querySelector('#markdown_fixer_allowed_apis') as HTMLTextAreaElement;
+  if (allowedAPIsTextarea) allowedAPIsTextarea.value = settings.allowedAPIs.join(', ');
+
+  const blockedAPIsTextarea = settingsContainer.querySelector('#markdown_fixer_blocked_apis') as HTMLTextAreaElement;
+  if (blockedAPIsTextarea) blockedAPIsTextarea.value = settings.blockedAPIs.join(', ');
+
+  st_echo('info', 'Settings have been reset to defaults');
 }
 
 async function formatMessage(id: number) {

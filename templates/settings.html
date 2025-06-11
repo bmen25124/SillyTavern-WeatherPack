@@ -5,75 +5,93 @@
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
-            <div class="markdown-fixer-restorable flex-container">
-                <label>Auto Mode</label>
-                <select class="text_pole auto_mode" id="markdown_fixer_auto_mode">
-                    <option value="none">None</option>
-                    <option value="responses">Process responses</option>
-                    <option value="inputs">Process inputs</option>
-                    <option value="both">Process both</option>
-                </select>
+            <div class="markdown-fixer-container">
+                <div class="setting-row">
+                    <label>Auto Mode</label>
+                    <select class="text_pole auto_mode" id="markdown_fixer_auto_mode">
+                        <option value="none">None</option>
+                        <option value="responses">Process responses</option>
+                        <option value="inputs">Process inputs</option>
+                        <option value="both">Process both</option>
+                    </select>
+                </div>
 
-                <div class="flex-container">
+                <div class="setting-row">
                     <label class="checkbox_label">
                         <input type="checkbox" id="markdown_fixer_enable_simplification" />
                         Enable Markdown Simplification
                     </label>
                 </div>
 
-                <div class="flex-container">
+                <div class="setting-row">
                     <label class="checkbox_label">
                         <input type="checkbox" id="markdown_fixer_include_html" />
                         Include HTML Processing
                     </label>
                 </div>
 
-                <div class="flex-container">
+                <div class="setting-row">
                     <label class="checkbox_label">
                         <input type="checkbox" id="markdown_fixer_include_code_blocks" />
                         Include Code Blocks
                     </label>
                 </div>
 
-                <div class="flex-container">
+                <div class="setting-row">
                     <label class="checkbox_label">
                         <input type="checkbox" id="markdown_fixer_enable_js_analysis" />
                         Enable JavaScript Security Analysis
                     </label>
                 </div>
 
-                <div class="flex-container">
+                <div class="setting-row">
                     <label class="checkbox_label">
                         <input type="checkbox" id="markdown_fixer_allow_obfuscation" />
                         Allow Obfuscated JavaScript
                     </label>
                 </div>
 
-                <label>Max Script Length</label>
-                <input
-                    type="number"
-                    class="text_pole"
-                    id="markdown_fixer_max_script_length"
-                    min="1000"
-                    max="1000000"
-                    step="1000"
-                />
+                <div class="setting-row">
+                    <label>Max Script Length</label>
+                    <input
+                        type="number"
+                        class="text_pole"
+                        id="markdown_fixer_max_script_length"
+                        min="1000"
+                        max="1000000"
+                        step="1000"
+                    />
+                </div>
 
-                <label>Allowed APIs (comma-separated)</label>
-                <textarea
-                    class="text_pole textarea_compact"
-                    id="markdown_fixer_allowed_apis"
-                    rows="3"
-                    placeholder="console, Math, Date, JSON"
-                ></textarea>
+                <div class="setting-row">
+                    <label>Allowed APIs (comma-separated)</label>
+                    <textarea
+                        class="text_pole textarea_compact"
+                        id="markdown_fixer_allowed_apis"
+                        rows="3"
+                        placeholder="console, Math, Date, JSON"
+                    ></textarea>
+                </div>
 
-                <label>Blocked APIs (comma-separated)</label>
-                <textarea
-                    class="text_pole textarea_compact"
-                    id="markdown_fixer_blocked_apis"
-                    rows="3"
-                    placeholder="fetch, XMLHttpRequest, eval"
-                ></textarea>
+                <div class="setting-row">
+                    <label>Blocked APIs (comma-separated)</label>
+                    <textarea
+                        class="text_pole textarea_compact"
+                        id="markdown_fixer_blocked_apis"
+                        rows="3"
+                        placeholder="fetch, XMLHttpRequest, eval"
+                    ></textarea>
+                </div>
+
+                <div class="setting-row">
+                    <button
+                        id="markdown_fixer_reset_button"
+                        class="menu_button interactable"
+                        title="Reset all settings to default values"
+                    >
+                        <i class="fa-solid fa-undo"></i> Reset to Defaults
+                    </button>
+                </div>
             </div>
         </div>
     </div>
