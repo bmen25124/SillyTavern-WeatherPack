@@ -1,4 +1,4 @@
-import { simplifyMarkdown } from '../util.js';
+import { simplifyMarkdown } from '../markdown.js';
 
 describe('simplifyMarkdown', () => {
   test('adds italic to plain text', () => {

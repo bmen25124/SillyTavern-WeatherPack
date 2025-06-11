@@ -2,14 +2,9 @@ import { ExtensionSettingsManager } from 'sillytavern-utils-lib';
 import { EventNames } from 'sillytavern-utils-lib/types';
 import { st_echo } from 'sillytavern-utils-lib/config';
 import { AutoModeOptions } from 'sillytavern-utils-lib/types/translate';
-import { simplifyMarkdown } from './util.js';
-import { st_updateMessageBlock } from './config.js';
-
-interface ExtensionSettings {
-  version: string;
-  formatVersion: string;
-  autoMode: AutoModeOptions;
-}
+import { simplifyMarkdown } from './markdown.js';
+import { ExtensionSettings, st_updateMessageBlock, st_updateMessageHTML } from './config.js';
+import { postProcess } from './html.js';
 
 const VERSION = '0.1.0';
 const FORMAT_VERSION = 'F_1.0';
@@ -18,6 +13,16 @@ const defaultSettings: ExtensionSettings = {
   version: VERSION,
   formatVersion: FORMAT_VERSION,
   autoMode: AutoModeOptions.RESPONSES,
+  enableMarkdownSimplification: true,
+  // HTML Processing Settings
+  includeHTML: false,
+  includeCodeBlocks: true, // Like "```html" or "```"
+  // JavaScript Security Settings
+  enableJSAnalysis: true,
+  allowedAPIs: ['console', 'Math', 'Date', 'JSON', 'parseInt', 'parseFloat', 'isNaN', 'isFinite'],
+  blockedAPIs: ['fetch', 'XMLHttpRequest', 'eval', 'Function', 'WebSocket', 'localStorage', 'sessionStorage'],
+  maxScriptLength: 50000,
+  allowObfuscation: false,
 };
 
 // Keys for extension settings
@@ -95,8 +100,19 @@ async function formatMessage(id: number) {
     st_echo('error', `Message with ID ${id} not found.`);
     return;
   }
-  message.mes = simplifyMarkdown(message.mes);
-  st_updateMessageBlock(id, message);
+  const settings = settingsManager.getSettings();
+
+  if (settings.enableMarkdownSimplification) {
+    const newMessageText = simplifyMarkdown(message.mes);
+    if (newMessageText !== message.mes) {
+      st_updateMessageBlock(id, message);
+    }
+  }
+
+  if (settingsManager.getSettings().includeHTML) {
+    const htmlResult = postProcess(id, message.name, message.mes);
+    await st_updateMessageHTML(id, htmlResult, settingsManager.getSettings());
+  }
 }
 
 function main() {

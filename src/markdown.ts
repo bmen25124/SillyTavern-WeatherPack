@@ -1,19 +1,8 @@
 // Using standard asterisks for all operations.
 const STANDARD_ASTERISK = /\*/g; // For global replace
-const STANDARD_ASTERISK_START = /^\*/;
-const STANDARD_ASTERISK_END = /\*$/;
-
-const isQuoted = (text: string): boolean => {
-  return text.trim().startsWith('"') && text.trim().endsWith('"');
-};
 
 const removeAllStandardAsterisks = (text: string): string => {
   return text.replace(STANDARD_ASTERISK, '');
-};
-
-const hasStandardItalic = (text: string): boolean => {
-  const trimmed = text.trim();
-  return trimmed.startsWith('*') && trimmed.endsWith('*');
 };
 
 const addStandardItalic = (text: string): string => {
