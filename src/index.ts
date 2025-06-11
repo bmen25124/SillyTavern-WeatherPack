@@ -12,7 +12,7 @@ const FORMAT_VERSION = 'F_1.0';
 const defaultSettings: ExtensionSettings = {
   version: VERSION,
   formatVersion: FORMAT_VERSION,
-  autoMode: AutoModeOptions.RESPONSES,
+  autoMode: AutoModeOptions.NONE,
   enableMarkdownSimplification: true,
   // HTML Processing Settings
   includeHTML: false,
