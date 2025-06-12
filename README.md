@@ -40,6 +40,7 @@ Configure the extension to automatically process messages:
 Access settings through Extensions > WeatherPack:
 
 - **Enable Markdown Simplification**: Toggle markdown processing
+- **Wrap Regular Text with Italic**: Toggle automatic italic wrapping for regular text
 - **Include HTML**: Process HTML content in messages
 - **Include Code Blocks**: Process content within code blocks
 - **JavaScript Security**: Configure security analysis for embedded scripts
@@ -50,7 +51,7 @@ Access settings through Extensions > WeatherPack:
 The extension intelligently processes different types of content blocks:
 
 ### Text Processing
-- **Regular Text**: Wraps non-quoted text in italics (`*text*`)
+- **Regular Text**: Wraps non-quoted text in italics (`*text*`) when "Wrap Regular Text with Italic" is enabled
 - **Quoted Dialogue**: Preserves quotes without adding italics
 - **Mixed Content**: Handles alternating quotes and narrative text appropriately
 

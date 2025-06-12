@@ -43,7 +43,7 @@ function stage1_processQuotes(text: string): string {
   );
 }
 
-function processSingleParagraphNonQuotedSegment(paragraphSegment: string): string {
+function processSingleParagraphNonQuotedSegment(paragraphSegment: string, wrapWithItalic: boolean): string {
   if (!paragraphSegment.trim()) {
     return paragraphSegment; // Preserve whitespace-only segments
   }
@@ -56,17 +56,21 @@ function processSingleParagraphNonQuotedSegment(paragraphSegment: string): strin
     return paragraphSegment; // Return original if only whitespace
   }
 
-  // Remove all existing asterisks and then add a single italic wrapper
+  // Remove all existing asterisks and then conditionally add a single italic wrapper
   const deItalicizedContent = removeAllStandardAsterisks(contentToProcess);
 
   if (!deItalicizedContent.trim()) {
     return leadingSpace + deItalicizedContent + trailingSpace;
   } else {
-    return leadingSpace + addStandardItalic(deItalicizedContent) + trailingSpace;
+    if (wrapWithItalic) {
+      return leadingSpace + addStandardItalic(deItalicizedContent) + trailingSpace;
+    } else {
+      return leadingSpace + deItalicizedContent + trailingSpace;
+    }
   }
 }
 
-function processNonQuotedSegment(segment: string): string {
+function processNonQuotedSegment(segment: string, wrapWithItalic: boolean): string {
   if (!segment.trim() && !segment.includes('\n')) {
     // Preserve segments that are only whitespace unless they contain newlines
     return segment;
@@ -80,7 +84,7 @@ function processNonQuotedSegment(segment: string): string {
       return part;
     } else {
       // This part is actual text content, process it
-      return processSingleParagraphNonQuotedSegment(part);
+      return processSingleParagraphNonQuotedSegment(part, wrapWithItalic);
     }
   });
 
@@ -93,7 +97,7 @@ function postProcess(text: string): string {
   return text.replace(/\* \*/g, ' ');
 }
 
-export function simplifyMarkdown(text: string): string {
+export function simplifyMarkdown(text: string, wrapRegularTextWithItalic: boolean): string {
   // Replace fancy quotes with standard quotes
   text = text.replace(/[“”]/g, '"');
   // Normalize multiple consecutive asterisks with single asterisks at the very beginning
@@ -186,13 +190,13 @@ export function simplifyMarkdown(text: string): string {
 
   while ((match = boundaryRegex.exec(currentText)) !== null) {
     const nonQuoteText = currentText.substring(lastIndex, match.index);
-    const processedNonQuote = processNonQuotedSegment(nonQuoteText);
+    const processedNonQuote = processNonQuotedSegment(nonQuoteText, wrapRegularTextWithItalic);
     resultStage2 += processedNonQuote;
     resultStage2 += match[0]; // Add the cleaned quote or placeholder itself
     lastIndex = boundaryRegex.lastIndex;
   }
   const remainingText = currentText.substring(lastIndex);
-  const processedRemaining = processNonQuotedSegment(remainingText);
+  const processedRemaining = processNonQuotedSegment(remainingText, wrapRegularTextWithItalic);
   resultStage2 += processedRemaining;
 
   let finalResult = originalLeadingSpace + resultStage2 + originalTrailingSpace;

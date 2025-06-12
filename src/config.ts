@@ -9,6 +9,7 @@ export interface ExtensionSettings {
   formatVersion: string;
   autoMode: AutoModeOptions;
   enableMarkdownSimplification: boolean;
+  wrapRegularTextWithItalic: boolean;
 
   // HTML Processing Settings
   includeHTML: boolean;

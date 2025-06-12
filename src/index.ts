@@ -14,6 +14,7 @@ const defaultSettings: ExtensionSettings = {
   formatVersion: FORMAT_VERSION,
   autoMode: AutoModeOptions.NONE,
   enableMarkdownSimplification: true,
+  wrapRegularTextWithItalic: true,
   // HTML Processing Settings
   includeHTML: false,
   includeCodeBlocks: true, // Like "```html" or "```"
@@ -128,6 +129,16 @@ async function initSettingsUI() {
     enableSimplificationCheckbox.checked = settings.enableMarkdownSimplification;
     enableSimplificationCheckbox.addEventListener('change', () => {
       settings.enableMarkdownSimplification = enableSimplificationCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Wrap Regular Text with Italic
+  const wrapRegularTextCheckbox = settingsContainer.querySelector('#weatherpack_wrap_regular_text') as HTMLInputElement;
+  if (wrapRegularTextCheckbox) {
+    wrapRegularTextCheckbox.checked = settings.wrapRegularTextWithItalic;
+    wrapRegularTextCheckbox.addEventListener('change', () => {
+      settings.wrapRegularTextWithItalic = wrapRegularTextCheckbox.checked;
       settingsManager.saveSettings();
     });
   }
@@ -280,6 +291,9 @@ async function resetSettingsToDefaults() {
   ) as HTMLInputElement;
   if (enableSimplificationCheckbox) enableSimplificationCheckbox.checked = settings.enableMarkdownSimplification;
 
+  const wrapRegularTextCheckbox = settingsContainer.querySelector('#weatherpack_wrap_regular_text') as HTMLInputElement;
+  if (wrapRegularTextCheckbox) wrapRegularTextCheckbox.checked = settings.wrapRegularTextWithItalic;
+
   const includeHTMLCheckbox = settingsContainer.querySelector('#weatherpack_include_html') as HTMLInputElement;
   if (includeHTMLCheckbox) includeHTMLCheckbox.checked = settings.includeHTML;
 
@@ -319,7 +333,7 @@ async function formatMessage(id: number) {
   const settings = settingsManager.getSettings();
 
   if (settings.enableMarkdownSimplification) {
-    const newMessageText = simplifyMarkdown(message.mes);
+    const newMessageText = simplifyMarkdown(message.mes, settings.wrapRegularTextWithItalic);
     if (newMessageText !== message.mes) {
       message.mes = newMessageText;
       st_updateMessageBlock(id, message);
