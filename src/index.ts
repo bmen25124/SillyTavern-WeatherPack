@@ -78,13 +78,6 @@ async function initUI() {
     }
   });
 
-  globalContext.eventSource.on(EventNames.IMPERSONATE_READY, async (messageId: number) => {
-    const currentSettings = settingsManager.getSettings();
-    if (outgoingTypes.includes(currentSettings.autoMode)) {
-      await formatMessage(messageId);
-    }
-  });
-
   // @ts-ignore
   globalContext.eventSource.makeFirst(EventNames.CHARACTER_MESSAGE_RENDERED, async (messageId: number) => {
     const currentSettings = settingsManager.getSettings();
