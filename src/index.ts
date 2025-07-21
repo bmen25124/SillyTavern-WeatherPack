@@ -352,7 +352,7 @@ settingsManager
   .catch((error) => {
     st_echo('error', error);
     globalContext.Popup.show
-      .confirm('Data migration failed. Do you want to reset the roadway data?', 'Roadway')
+      .confirm('Data migration failed. Do you want to reset the WeatherPack data?', 'Reset WeatherPack')
       .then((result: any) => {
         if (result) {
           settingsManager.resetSettings();
