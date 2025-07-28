@@ -1,0 +1,41 @@
+<div id="weatherPackAskAiPopup" class="ask-ai-popup">
+    <div class="popup-header">
+        <span>WeatherPack - Ask AI about this message (EXPERIMENTAL)</span>
+    </div>
+    <div class="popup-body">
+        <div class="setting-row">
+            <label for="ask-ai-profile">Connection Profile</label>
+            <select id="ask-ai-profile" class="text_pole profile" title="Select a Connection Profile"></select>
+        </div>
+        <div class="setting-row">
+            <label for="ask-ai-max-tokens">Max Response Tokens</label>
+            <input id="ask-ai-max-tokens" type="number" class="text_pole" min="256" max="32000" step="64" />
+        </div>
+        <div class="setting-row">
+            <label for="ask-ai-include-messages">Include Last X Messages</label>
+            <input id="ask-ai-include-messages" type="number" class="text_pole" min="0" max="50" step="1" />
+        </div>
+        <br />
+        <div class="setting-row">
+            <label for="ask-ai-question">Your question:</label>
+            <textarea
+                id="ask-ai-question"
+                rows="4"
+                class="text_pole"
+                placeholder="Type your question here..."
+            ></textarea>
+        </div>
+        <div class="setting-row">
+            <label for="ask-ai-result">AI Response:</label>
+            <textarea
+                id="ask-ai-result"
+                rows="6"
+                class="text_pole"
+                placeholder="AI response will appear here..."
+            ></textarea>
+        </div>
+    </div>
+    <div class="popup-footer">
+        <button id="ask-ai-submit" class="menu_button interactable">Ask</button>
+    </div>
+</div>

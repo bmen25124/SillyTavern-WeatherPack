@@ -21,6 +21,11 @@ export interface ExtensionSettings {
   blockedAPIs: string[];
   maxScriptLength: number;
   allowObfuscation: boolean;
+
+  // AI/Connection
+  profileId?: string;
+  maxResponseToken?: number;
+  includeLastXMessages?: number;
 }
 
 export const extensionName = 'SillyTavern-WeatherPack';

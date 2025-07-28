@@ -1,10 +1,11 @@
-import { ExtensionSettingsManager } from 'sillytavern-utils-lib';
-import { EventNames } from 'sillytavern-utils-lib/types';
-import { st_echo } from 'sillytavern-utils-lib/config';
+import { buildPrompt, ExtensionSettingsManager } from 'sillytavern-utils-lib';
+import { EventNames, ExtractedData } from 'sillytavern-utils-lib/types';
+import { st_echo, this_chid } from 'sillytavern-utils-lib/config';
 import { AutoModeOptions } from 'sillytavern-utils-lib/types/translate';
 import { simplifyMarkdown } from './markdown.js';
 import { ExtensionSettings, st_updateMessageBlock, st_updateMessageHTML } from './config.js';
 import { postProcess } from './html.js';
+import { POPUP_RESULT, POPUP_TYPE } from 'sillytavern-utils-lib/types/popup';
 
 const VERSION = '0.1.0';
 const FORMAT_VERSION = 'F_1.0';
@@ -51,22 +52,40 @@ async function initUI() {
   // Initialize settings UI
   await initSettingsUI();
 
+  // WeatherPack button
   const showFixButton = document.createElement('div');
   showFixButton.title = 'WeatherPack';
   showFixButton.className = 'mes_button mes_weatherpack_button fa-solid fa-screwdriver interactable';
   showFixButton.tabIndex = 0;
+
+  // Ask AI button
+  const askAiButton = document.createElement('div');
+  askAiButton.title = 'Ask AI';
+  askAiButton.className = 'mes_button mes_askai_button fa-regular fa-circle-question interactable';
+  askAiButton.tabIndex = 0;
+
   const messageTemplate = document.querySelector('#message_template .mes_buttons .extraMesButtons');
   if (messageTemplate) {
+    messageTemplate.prepend(askAiButton);
     messageTemplate.prepend(showFixButton);
   }
 
   document.addEventListener('click', async function (event) {
     const target = event.target as HTMLElement;
+    // WeatherPack button
     if (target.classList.contains('mes_weatherpack_button')) {
       const messageBlock = target.closest('.mes');
       if (messageBlock) {
         const messageId = Number(messageBlock.getAttribute('mesid'));
         await formatMessage(messageId);
+      }
+    }
+    // Ask AI button
+    if (target.classList.contains('mes_askai_button')) {
+      const messageBlock = target.closest('.mes');
+      if (messageBlock) {
+        const messageId = Number(messageBlock.getAttribute('mesid'));
+        await askAiAboutMessage(messageId);
       }
     }
   });
@@ -360,6 +379,206 @@ async function formatMessage(id: number) {
     const htmlResult = postProcess(id, message.name, message.mes);
     await st_updateMessageHTML(id, htmlResult, settings);
   }
+}
+
+async function askAiAboutMessage(messageId: number) {
+  const message = SillyTavern.getContext().chat[messageId];
+  if (!message) {
+    st_echo('error', `Message with ID ${messageId} not found.`);
+    return;
+  }
+  const settings = settingsManager.getSettings();
+
+  // Render popup HTML
+  const popupHtml = await globalContext.renderExtensionTemplateAsync(
+    `third-party/SillyTavern-WeatherPack`,
+    'templates/ask-ai',
+  );
+  let abortController: AbortController | null = null;
+  globalContext.callGenericPopup(popupHtml, POPUP_TYPE.DISPLAY, undefined, {
+    large: true,
+    wide: true,
+    cancelButton: false,
+    okButton: 'Apply to Message',
+    // @ts-ignore
+    onOpen(popup: any) {
+      popup.buttonControls.style.display = 'block';
+    },
+    async onClose(popup: any) {
+      if (abortController) {
+        try {
+          abortController.abort();
+        } catch (error) {
+        } finally {
+          abortController = null;
+        }
+      }
+
+      const result = popup.result as POPUP_RESULT;
+      if (result === POPUP_RESULT.AFFIRMATIVE) {
+        let newContent = resultArea.value;
+        if (!newContent) return;
+        const currentSettings = settingsManager.getSettings();
+        if (currentSettings.enableMarkdownSimplification) {
+          newContent = simplifyMarkdown(
+            newContent,
+            currentSettings.wrapRegularTextWithItalic,
+            currentSettings.removeNamePrefix ? message.name : undefined,
+          );
+        }
+        message.mes = newContent;
+        st_updateMessageBlock(messageId, message);
+        await globalContext.saveChat();
+      }
+    },
+    onClosing(popup: any) {
+      const result = popup.result as POPUP_RESULT;
+      if (result === POPUP_RESULT.AFFIRMATIVE) {
+        let newContent = resultArea.value;
+        if (!newContent) {
+          st_echo('error', 'AI response is empty.');
+          return false;
+        }
+      }
+      return true;
+    },
+  });
+
+  const popup = document.getElementById('weatherPackAskAiPopup');
+  if (!popup) return;
+
+  // Populate profile dropdown
+  const profileSelect = popup.querySelector('#ask-ai-profile') as HTMLSelectElement;
+  const profiles = globalContext.extensionSettings.connectionManager?.profiles || [];
+  profileSelect.innerHTML = '<option value="">Select a Connection Profile</option>';
+  profiles.forEach((profile: any) => {
+    const opt = document.createElement('option');
+    opt.value = profile.id;
+    opt.textContent = profile.name || profile.id;
+    if (settings.profileId && profile.id === settings.profileId) opt.selected = true;
+    profileSelect.appendChild(opt);
+  });
+
+  // Set max tokens and include messages
+  const maxTokensInput = popup.querySelector('#ask-ai-max-tokens') as HTMLInputElement;
+  maxTokensInput.value = (settings.maxResponseToken || 16000).toString();
+  const includeMessagesInput = popup.querySelector('#ask-ai-include-messages') as HTMLInputElement;
+  includeMessagesInput.value = (settings.includeLastXMessages || 0).toString();
+
+  // Submit handler
+  const resultArea = popup.querySelector('#ask-ai-result') as HTMLTextAreaElement;
+  const submitBtn = popup.querySelector('#ask-ai-submit') as HTMLButtonElement;
+
+  async function handleSubmit() {
+    const question = (popup!.querySelector('#ask-ai-question') as HTMLTextAreaElement).value.trim();
+    const profileId = profileSelect.value;
+    const maxTokens = parseInt(maxTokensInput.value) || 16000;
+    const includeLastXMessages = parseInt(includeMessagesInput.value) || 0;
+
+    // Save values to settings
+    settings.includeLastXMessages = includeLastXMessages;
+    settings.maxResponseToken = maxTokens;
+    settings.profileId = profileId;
+    settingsManager.saveSettings();
+
+    if (!profileId) {
+      await st_echo('error', 'Please select a connection profile.');
+      return;
+    }
+    if (!question) {
+      await st_echo('error', 'Please enter a question.');
+      return;
+    }
+
+    const profile = profiles.find((p: any) => p.id === profileId);
+    const apiMap = profile?.api ? globalContext.CONNECT_API_MAP[profile.api] : null;
+
+    // Abort previous request if any
+    try {
+      abortController?.abort();
+    } catch (error) {
+    } finally {
+      abortController = null;
+    }
+    abortController = new AbortController();
+
+    submitBtn.textContent = 'Cancel';
+
+    try {
+      // Build prompt with context
+      const promptResult = await buildPrompt(apiMap?.selected!, {
+        targetCharacterId: this_chid,
+        messageIndexesBetween: {
+          end: messageId,
+          start: includeLastXMessages > 0 ? Math.max(0, messageId - includeLastXMessages) : 0,
+        },
+        presetName: profile?.preset,
+        contextName: profile?.context,
+        instructName: profile?.instruct,
+        syspromptName: profile?.sysprompt,
+        includeNames: false,
+      });
+      let messages = promptResult.result;
+      messages.push({
+        content: question,
+        role: 'user',
+      });
+
+      // Send to AI with structured output
+      const rest = (await globalContext.ConnectionManagerRequestService.sendRequest(
+        profileId,
+        messages,
+        maxTokens,
+        { signal: abortController.signal },
+        {
+          json_schema: {
+            name: 'AskAIResult',
+            strict: true,
+            value: {
+              type: 'object',
+              properties: {
+                answer: { type: 'string', description: 'The answer to the user question.' },
+                reasoning: { type: 'string', description: 'Short reasoning or explanation.' },
+              },
+              required: ['answer'],
+              additionalProperties: false,
+            },
+          },
+        },
+      )) as ExtractedData;
+
+      let aiContent: any = rest?.content;
+      if (!aiContent || (typeof aiContent === 'object' && Object.keys(aiContent).length === 0)) {
+        await st_echo('error', 'No response received from AI.');
+        return;
+      }
+      // Show result in textarea
+      resultArea.value = aiContent.answer || '';
+    } catch (err: any) {
+      if (err?.name === 'AbortError') {
+        st_echo('info', 'AI request cancelled.');
+      } else {
+        st_echo('error', 'AI request failed.');
+      }
+    } finally {
+      submitBtn.textContent = 'Ask';
+      abortController = null;
+    }
+  }
+
+  submitBtn.onclick = () => {
+    if (submitBtn.textContent === 'Cancel' && abortController) {
+      try {
+        abortController.abort();
+      } catch (error) {
+      } finally {
+        abortController = null;
+      }
+      submitBtn.textContent = 'Ask';
+      return;
+    }
+    handleSubmit();
+  };
 }
 
 function main() {
