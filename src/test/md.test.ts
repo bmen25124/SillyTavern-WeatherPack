@@ -299,3 +299,41 @@ test('preserves complex nested HTML with multiple divs and scripts', () => {
 
   expect(simplifyMarkdown(input, true)).toBe(expected);
 });
+
+describe('name prefix removal', () => {
+  test('removes character name prefix when provided', () => {
+    const input = 'Alice: *Hello* there!';
+    const expected = '*Hello there!*';
+    expect(simplifyMarkdown(input, true, 'Alice')).toBe(expected);
+  });
+
+  test('removes name prefix case insensitively and with asterisks', () => {
+    const input = '*aLiCe: *Hello* there!';
+    const expected = '*Hello there!*';
+    expect(simplifyMarkdown(input, true, 'Alice')).toBe(expected);
+  });
+  test('removes name prefix on its own line', () => {
+    {
+      const input = 'Alice:\n\n*Hello* there!';
+      const expected = '*Hello there!*';
+      expect(simplifyMarkdown(input, true, 'Alice')).toBe(expected);
+    }
+    {
+      const input = '*Alice:*\n\n*Hello* there!';
+      const expected = '*Hello there!*';
+      expect(simplifyMarkdown(input, true, 'Alice')).toBe(expected);
+    }
+  });
+
+  test('does not remove non-matching name prefix', () => {
+    const input = 'Bob: *Hello* there!';
+    const expected = '*Bob: Hello there!*';
+    expect(simplifyMarkdown(input, true, 'Alice')).toBe(expected);
+  });
+
+  test('works without name parameter', () => {
+    const input = 'Alice: *Hello* there!';
+    const expected = '*Alice: Hello there!*';
+    expect(simplifyMarkdown(input, true)).toBe(expected);
+  });
+});

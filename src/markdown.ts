@@ -97,7 +97,7 @@ function postProcess(text: string): string {
   return text.replace(/\* \*/g, ' ');
 }
 
-export function simplifyMarkdown(text: string, wrapRegularTextWithItalic: boolean): string {
+export function simplifyMarkdown(text: string, wrapRegularTextWithItalic: boolean, name?: string): string {
   // Replace fancy quotes with standard quotes
   text = text.replace(/[“”]/g, '"');
   // Normalize multiple consecutive asterisks with single asterisks at the very beginning
@@ -236,6 +236,20 @@ export function simplifyMarkdown(text: string, wrapRegularTextWithItalic: boolea
 
   if (iterations >= maxHtmlRestoreIterations && htmlBlocks.length > 0) {
     console.warn('WeatherPack: Max HTML restoration iterations reached. Result might be incomplete.');
+  }
+
+  if (name) {
+    // Handle name prefix removal for all cases
+    const nameRegex = new RegExp(`^\\s*(\\*?)\\s*${name}:\\s*(?:\\*\\s*)?(.*)$`, 'is');
+
+    finalResult = finalResult.replace(nameRegex, (match, asterisk, rest) => {
+      // Check if rest starts with asterisk
+      const trimmedRest = rest.trim();
+      if (trimmedRest.startsWith('*')) {
+        return trimmedRest;
+      }
+      return (asterisk || '') + trimmedRest;
+    });
   }
 
   return finalResult;

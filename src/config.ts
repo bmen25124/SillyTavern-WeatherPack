@@ -10,6 +10,7 @@ export interface ExtensionSettings {
   autoMode: AutoModeOptions;
   enableMarkdownSimplification: boolean;
   wrapRegularTextWithItalic: boolean;
+  removeNamePrefix: boolean;
 
   // HTML Processing Settings
   includeHTML: boolean;

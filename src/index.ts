@@ -15,6 +15,7 @@ const defaultSettings: ExtensionSettings = {
   autoMode: AutoModeOptions.NONE,
   enableMarkdownSimplification: true,
   wrapRegularTextWithItalic: true,
+  removeNamePrefix: false,
   // HTML Processing Settings
   includeHTML: false,
   includeCodeBlocks: true, // Like "```html" or "```"
@@ -103,6 +104,18 @@ async function initSettingsUI() {
   }
 
   const settings = settingsManager.getSettings();
+
+  // Remove Name Prefix
+  const removeNamePrefixCheckbox = settingsContainer.querySelector(
+    '#weatherpack_remove_name_prefix',
+  ) as HTMLInputElement;
+  if (removeNamePrefixCheckbox) {
+    removeNamePrefixCheckbox.checked = settings.removeNamePrefix;
+    removeNamePrefixCheckbox.addEventListener('change', () => {
+      settings.removeNamePrefix = removeNamePrefixCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
 
   // Auto Mode
   const autoModeSelect = settingsContainer.querySelector('#weatherpack_auto_mode') as HTMLSelectElement;
@@ -287,6 +300,11 @@ async function resetSettingsToDefaults() {
   const wrapRegularTextCheckbox = settingsContainer.querySelector('#weatherpack_wrap_regular_text') as HTMLInputElement;
   if (wrapRegularTextCheckbox) wrapRegularTextCheckbox.checked = settings.wrapRegularTextWithItalic;
 
+  const removeNamePrefixCheckbox = settingsContainer.querySelector(
+    '#weatherpack_remove_name_prefix',
+  ) as HTMLInputElement;
+  if (removeNamePrefixCheckbox) removeNamePrefixCheckbox.checked = settings.removeNamePrefix;
+
   const includeHTMLCheckbox = settingsContainer.querySelector('#weatherpack_include_html') as HTMLInputElement;
   if (includeHTMLCheckbox) includeHTMLCheckbox.checked = settings.includeHTML;
 
@@ -326,7 +344,11 @@ async function formatMessage(id: number) {
   const settings = settingsManager.getSettings();
 
   if (settings.enableMarkdownSimplification) {
-    const newMessageText = simplifyMarkdown(message.mes, settings.wrapRegularTextWithItalic);
+    const newMessageText = simplifyMarkdown(
+      message.mes,
+      settings.wrapRegularTextWithItalic,
+      settings.removeNamePrefix ? message.name : undefined,
+    );
     if (newMessageText !== message.mes) {
       message.mes = newMessageText;
       st_updateMessageBlock(id, message);
