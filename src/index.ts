@@ -470,7 +470,7 @@ async function askAiAboutMessage(messageId: number) {
   const submitBtn = popup.querySelector('#ask-ai-submit') as HTMLButtonElement;
 
   async function handleSubmit() {
-    const question = (popup!.querySelector('#ask-ai-question') as HTMLTextAreaElement).value.trim();
+    let question = (popup!.querySelector('#ask-ai-question') as HTMLTextAreaElement).value.trim();
     const profileId = profileSelect.value;
     const maxTokens = parseInt(maxTokensInput.value) || 16000;
     const includeLastXMessages = parseInt(includeMessagesInput.value) || 0;
@@ -485,6 +485,7 @@ async function askAiAboutMessage(messageId: number) {
       await st_echo('error', 'Please select a connection profile.');
       return;
     }
+    question = globalContext.substituteParams(question);
     if (!question) {
       await st_echo('error', 'Please enter a question.');
       return;

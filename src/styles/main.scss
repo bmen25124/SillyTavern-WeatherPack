@@ -1,3 +1,7 @@
+.popup-content:has(#weatherPackAskAiPopup) {
+    overflow-y: auto;
+}
+
 .weatherpack-settings {
     .weatherpack-container {
         display: flex;
