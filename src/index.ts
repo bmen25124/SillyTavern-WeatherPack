@@ -113,6 +113,21 @@ async function initUI() {
       await formatMessage(messageId);
     }
   });
+
+  globalContext.eventSource.on(EventNames.CHAT_CHANGED, async () => {
+    const context = SillyTavern.getContext();
+    if (!context.chat.length) {
+      return;
+    }
+
+    if (settings.includeHTML) {
+      for (let i = context.chat.length - 1; i >= 0; i--) {
+        const message = context.chat[i];
+        const htmlResult = postProcess(i, message.name, message.mes);
+        await st_updateMessageHTML(i, htmlResult, settings);
+      }
+    }
+  });
 }
 
 async function initSettingsUI() {
