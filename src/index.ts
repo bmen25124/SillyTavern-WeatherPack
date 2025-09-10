@@ -1,6 +1,6 @@
 import { buildPrompt, ExtensionSettingsManager } from 'sillytavern-utils-lib';
 import { EventNames, ExtractedData } from 'sillytavern-utils-lib/types';
-import { st_echo, this_chid } from 'sillytavern-utils-lib/config';
+import { selected_group, st_echo, this_chid } from 'sillytavern-utils-lib/config';
 import { AutoModeOptions } from 'sillytavern-utils-lib/types/translate';
 import { simplifyMarkdown } from './markdown.js';
 import { ExtensionSettings, st_updateMessageBlock, st_updateMessageHTML } from './config.js';
@@ -37,6 +37,30 @@ const settingsManager = new ExtensionSettingsManager<ExtensionSettings>(EXTENSIO
 const incomingTypes = [AutoModeOptions.RESPONSES, AutoModeOptions.BOTH];
 const outgoingTypes = [AutoModeOptions.INPUT, AutoModeOptions.BOTH];
 
+function injectExportIconIntoTemplate() {
+  const pastChatTemplate = document.getElementById('past_chat_template');
+  if (!pastChatTemplate) {
+    console.warn('WeatherPack: Could not find #past_chat_template to inject export icon.');
+    return;
+  }
+
+  // Check if icon is already injected
+  if (pastChatTemplate.querySelector('.weatherpack_export_range_button')) {
+    return;
+  }
+
+  const iconContainer = pastChatTemplate.querySelector('.select_chat_block_wrapper .gap10px:last-child');
+  if (iconContainer) {
+    const exportRangeIcon = document.createElement('div');
+    exportRangeIcon.title = 'Export chat range';
+    exportRangeIcon.className = 'weatherpack_export_range_button opacity50p hoverglow fa-solid fa-scissors';
+    exportRangeIcon.setAttribute('data-i18n', '[title]Export chat range');
+
+    // Prepend the icon to the container. This is more robust than insertBefore.
+    iconContainer.prepend(exportRangeIcon);
+  }
+}
+
 async function initUI() {
   // Render and append settings UI
   const settingsHtml = await globalContext.renderExtensionTemplateAsync(
@@ -51,6 +75,7 @@ async function initUI() {
 
   // Initialize settings UI
   await initSettingsUI();
+  injectExportIconIntoTemplate();
 
   // WeatherPack button
   const showFixButton = document.createElement('div');
@@ -86,6 +111,20 @@ async function initUI() {
       if (messageBlock) {
         const messageId = Number(messageBlock.getAttribute('mesid'));
         await askAiAboutMessage(messageId);
+      }
+    }
+    // Export Range button
+    if (target.classList.contains('weatherpack_export_range_button')) {
+      const chatBlock = target.closest('.select_chat_block');
+      const chatWrapper = target.closest('.select_chat_block_wrapper');
+      if (chatBlock && chatWrapper) {
+        const chatFileName = chatBlock.getAttribute('file_name');
+        const messageCountText = chatWrapper.querySelector('.chat_messages_num')?.textContent || '0';
+        const messageCount = parseInt(messageCountText.replace(/\D/g, '')) || 0;
+
+        if (chatFileName) {
+          await handleExportClick(chatFileName, messageCount);
+        }
       }
     }
   });
@@ -367,6 +406,123 @@ async function resetSettingsToDefaults() {
   if (blockedAPIsTextarea) blockedAPIsTextarea.value = settings.blockedAPIs.join(', ');
 
   st_echo('info', 'Settings have been reset to defaults');
+}
+
+async function handleExportClick(chatFileName: string, messageCount: number) {
+  const popupHtml = await globalContext.renderExtensionTemplateAsync(
+    'third-party/SillyTavern-WeatherPack',
+    'templates/export-popup',
+  );
+
+  globalContext.callGenericPopup(popupHtml, POPUP_TYPE.CONFIRM, undefined, {
+    cancelButton: true,
+    okButton: 'Export',
+    onClose: async (popup: any) => {
+      if (popup.result === POPUP_RESULT.AFFIRMATIVE) {
+        const startIndex = parseInt((popup.content.querySelector('#export-start-index') as HTMLInputElement).value);
+        const endIndex = parseInt((popup.content.querySelector('#export-end-index') as HTMLInputElement).value);
+        const format = (popup.content.querySelector('#export-format') as HTMLSelectElement).value as 'jsonl' | 'txt';
+
+        await executeExport(startIndex, endIndex, format, chatFileName, messageCount);
+      }
+    },
+  });
+
+  // Populate the fields after the popup is added to the DOM
+  const popupElement = document.getElementById('weatherPackExportPopup');
+  if (popupElement) {
+    const startIndexInput = popupElement.querySelector('#export-start-index') as HTMLInputElement;
+    const endIndexInput = popupElement.querySelector('#export-end-index') as HTMLInputElement;
+    const lastMessageIndex = Math.max(0, messageCount - 1);
+
+    if (startIndexInput) {
+      startIndexInput.value = '0';
+      startIndexInput.max = lastMessageIndex.toString();
+    }
+    if (endIndexInput) {
+      endIndexInput.value = lastMessageIndex.toString();
+      endIndexInput.max = lastMessageIndex.toString();
+    }
+  }
+}
+
+export function download(content: string, fileName: string, contentType: string) {
+  const a = document.createElement('a');
+  const file = new Blob([content], { type: contentType });
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function executeExport(
+  startIndex: number,
+  endIndex: number,
+  format: 'jsonl' | 'txt',
+  chatFileName: string,
+  messageCount: number,
+) {
+  if (
+    isNaN(startIndex) ||
+    isNaN(endIndex) ||
+    startIndex < 0 ||
+    endIndex < 0 ||
+    startIndex > endIndex ||
+    endIndex >= messageCount
+  ) {
+    st_echo('error', 'Invalid message range specified.');
+    return;
+  }
+
+  // Request the full chat content in the desired format
+  const body = {
+    file: chatFileName,
+    format: format,
+    is_group: !!selected_group,
+    avatar_url: globalContext.characters[this_chid]?.avatar,
+    exportfilename: chatFileName.replace('.jsonl', '').replace('.txt', ''),
+  };
+  let fullContent: string;
+  try {
+    const response = await fetch('/api/chats/export', {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: globalContext.getRequestHeaders(),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      st_echo('error', `Error fetching chat data: ${data.message}`);
+      return;
+    }
+    fullContent = data.result;
+  } catch (error: any) {
+    st_echo('error', `An error occurred during export fetch: ${error.message}`);
+    return;
+  }
+
+  const baseFileName = chatFileName.replace('.jsonl', '');
+  const exportFileName = `${baseFileName}_${startIndex}-${endIndex}.${format}`;
+
+  let slicedMessages: string[];
+  let joiner: string;
+  let mimeType: string;
+
+  if (format === 'jsonl') {
+    const lines = fullContent.split('\n').filter((line: string) => line.trim() !== '');
+    slicedMessages = lines.slice(startIndex, endIndex + 1);
+    joiner = '\n';
+    mimeType = 'application/octet-stream';
+  } else {
+    // For txt, messages are separated by double newlines
+    const messageBlocks = fullContent.split('\n\n');
+    slicedMessages = messageBlocks.slice(startIndex, endIndex + 1);
+    joiner = '\n\n';
+    mimeType = 'text/plain';
+  }
+
+  const rangedContent = slicedMessages.join(joiner);
+  download(rangedContent, exportFileName, mimeType);
+  st_echo('success', `Exported messages ${startIndex}-${endIndex} to ${exportFileName}`);
 }
 
 async function formatMessage(id: number) {
