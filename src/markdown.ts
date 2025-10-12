@@ -204,17 +204,7 @@ export function simplifyMarkdown(text: string, wrapRegularTextWithItalic: boolea
   // Stage 3: Final post-processing cleanup
   finalResult = postProcess(finalResult);
 
-  // Restore blocks
-  finalResult = finalResult.replace(/__FENCED_(\d+)__/g, (_match, index) => {
-    return fencedBlocks[parseInt(index, 10)];
-  });
-  finalResult = finalResult.replace(/__INLINE_(\d+)__/g, (_match, index) => {
-    return inlineBlocks[parseInt(index, 10)];
-  });
-  finalResult = finalResult.replace(/__OOC_(\d+)__/g, (_match, index) => {
-    return oocBlocks[parseInt(index, 10)];
-  });
-  // Iteratively restore HTML blocks to handle nesting
+  // Restore blocks - HTML blocks FIRST because they may contain other placeholders
   let iterations = 0;
   // Max iterations to prevent infinite loops, e.g., if a block somehow contained its own placeholder.
   const maxHtmlRestoreIterations = htmlBlocks.length > 0 ? htmlBlocks.length * 2 + 5 : 10;
@@ -237,6 +227,17 @@ export function simplifyMarkdown(text: string, wrapRegularTextWithItalic: boolea
   if (iterations >= maxHtmlRestoreIterations && htmlBlocks.length > 0) {
     console.warn('WeatherPack: Max HTML restoration iterations reached. Result might be incomplete.');
   }
+
+  // Now restore other blocks after HTML blocks are restored
+  finalResult = finalResult.replace(/__FENCED_(\d+)__/g, (_match, index) => {
+    return fencedBlocks[parseInt(index, 10)];
+  });
+  finalResult = finalResult.replace(/__INLINE_(\d+)__/g, (_match, index) => {
+    return inlineBlocks[parseInt(index, 10)];
+  });
+  finalResult = finalResult.replace(/__OOC_(\d+)__/g, (_match, index) => {
+    return oocBlocks[parseInt(index, 10)];
+  });
 
   if (name) {
     // Handle name prefix removal for all cases

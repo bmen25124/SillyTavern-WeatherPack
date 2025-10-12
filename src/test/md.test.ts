@@ -203,6 +203,16 @@ A moment of silence. Then, almost a whisper: **"...Unique."**`;
     const expected = '*Here is some text.* `remove this` *and a code block:*\n\n```\n*preserve this*\n```';
     expect(simplifyMarkdown(input, true)).toBe(expected);
   });
+
+  test('preserves fenced blocks inside HTML tags', () => {
+    const input = `*Foobar*
+<infoblock>
+\`\`\`md
+Location: Room
+\`\`\`
+</infoblock>`;
+    expect(simplifyMarkdown(input, true)).toBe(input);
+  });
 });
 
 test('preserves OOC blocks', () => {
