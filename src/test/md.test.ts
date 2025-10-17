@@ -192,15 +192,15 @@ A moment of silence. Then, almost a whisper: **"...Unique."**`;
     expect(simplifyMarkdown(input, true)).toBe(input);
   });
 
-  test('removes asterisks from inline code blocks', () => {
+  test('preserves asterisks in inline code blocks', () => {
     const input = 'This is some code: `const x = "*";`';
-    const expected = '*This is some code:* `const x = "";`';
+    const expected = '*This is some code:* `const x = "*";`';
     expect(simplifyMarkdown(input, true)).toBe(expected);
   });
 
   test('handles mixed content with code blocks', () => {
     const input = 'Here is some text. `*remove this*` and a code block:\n\n```\n*preserve this*\n```';
-    const expected = '*Here is some text.* `remove this` *and a code block:*\n\n```\n*preserve this*\n```';
+    const expected = '*Here is some text.* `*remove this*` *and a code block:*\n\n```\n*preserve this*\n```';
     expect(simplifyMarkdown(input, true)).toBe(expected);
   });
 });
@@ -299,6 +299,12 @@ test('preserves complex nested HTML with multiple divs and scripts', () => {
 
   expect(simplifyMarkdown(input, true)).toBe(expected);
 });
+
+  test('unwraps HTML from code blocks', () => {
+    const input = 'This is a test with `<font color=FF69B4>“Coffee strong. Sleep more. Idiot.”</font>`';
+    const expected = '*This is a test with* <font color=FF69B4>"Coffee strong. Sleep more. Idiot."</font>';
+    expect(simplifyMarkdown(input, true)).toBe(expected);
+  });
 
 describe('name prefix removal', () => {
   test('removes character name prefix when provided', () => {

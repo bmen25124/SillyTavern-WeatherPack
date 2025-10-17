@@ -121,7 +121,24 @@ export function simplifyMarkdown(text: string, wrapRegularTextWithItalic: boolea
     return `__FENCED_${fencedBlocks.length - 1}__`;
   });
 
-  // Stage 0b: Preserve HTML/XML tags FIRST to keep their content intact
+  // Stage 0b: Process and preserve inline code blocks (`...`)
+  // This is done before general HTML extraction to give it priority.
+  textWithPlaceholders = textWithPlaceholders.replace(/(`[^`\n]*?`)/g, (match) => {
+    const content = match.substring(1, match.length - 1);
+    const trimmedContent = content.trim();
+
+    // Check if the content is likely HTML
+    if (trimmedContent.startsWith('<') && trimmedContent.endsWith('>')) {
+      // It looks like HTML, so unwrap it and let the HTML processor handle it.
+      return content;
+    }
+
+    // For other code blocks, preserve them as is. Stripping asterisks was incorrect.
+    inlineBlocks.push(match);
+    return `__INLINE_${inlineBlocks.length - 1}__`;
+  });
+
+  // Stage 0c: Preserve HTML/XML tags FIRST to keep their content intact
   // This regex matches:
   // 1. Paired tags with content: <tag ...>content</tag>  - Using balanced parentheses approach
   // 2. Self-closing tags: <tag ... />
@@ -160,14 +177,6 @@ export function simplifyMarkdown(text: string, wrapRegularTextWithItalic: boolea
 
   textWithPlaceholders = extractHtmlTags(textWithPlaceholders);
 
-  // Stage 0c: Process and preserve inline code blocks (`...`)
-  textWithPlaceholders = textWithPlaceholders.replace(/(`[^`\n]*?`)/g, (match) => {
-    const content = match.substring(1, match.length - 1);
-    const cleanedContent = removeAllStandardAsterisks(content);
-    inlineBlocks.push(`\`${cleanedContent}\``);
-    return `__INLINE_${inlineBlocks.length - 1}__`;
-  });
-
   // Stage 0d: Preserve OOC blocks ((OOC:...))
   textWithPlaceholders = textWithPlaceholders.replace(/\(OOC:[\s\S]*?\)/gi, (match) => {
     oocBlocks.push(match);
@@ -205,37 +214,31 @@ export function simplifyMarkdown(text: string, wrapRegularTextWithItalic: boolea
   finalResult = postProcess(finalResult);
 
   // Restore blocks
-  finalResult = finalResult.replace(/__FENCED_(\d+)__/g, (_match, index) => {
-    return fencedBlocks[parseInt(index, 10)];
-  });
-  finalResult = finalResult.replace(/__INLINE_(\d+)__/g, (_match, index) => {
-    return inlineBlocks[parseInt(index, 10)];
-  });
-  finalResult = finalResult.replace(/__OOC_(\d+)__/g, (_match, index) => {
-    return oocBlocks[parseInt(index, 10)];
-  });
-  // Iteratively restore HTML blocks to handle nesting
+  // Iteratively restore placeholders to handle nesting.
+  // This is necessary because placeholders can be inside other placeholders (e.g., an inline code block inside an HTML tag).
   let iterations = 0;
-  // Max iterations to prevent infinite loops, e.g., if a block somehow contained its own placeholder.
-  const maxHtmlRestoreIterations = htmlBlocks.length > 0 ? htmlBlocks.length * 2 + 5 : 10;
-  let previousHtmlPassResult;
+  // A generous safety break to prevent infinite loops.
+  const maxIterations = (fencedBlocks.length + htmlBlocks.length + inlineBlocks.length + oocBlocks.length) * 2 + 10;
 
-  do {
-    previousHtmlPassResult = finalResult;
-    finalResult = finalResult.replace(/__HTML_(\d+)__/g, (_match, indexStr) => {
-      const htmlBlockIndex = parseInt(indexStr, 10);
-      if (htmlBlockIndex >= 0 && htmlBlockIndex < htmlBlocks.length) {
-        return htmlBlocks[htmlBlockIndex];
-      }
-      // If index is out of bounds (should not happen with correct placeholder generation),
-      // return the original placeholder to avoid errors and make debugging easier.
-      return _match;
-    });
+  // Keep looping as long as there are placeholders to restore.
+  while (
+    /__FENCED_\d+__/.test(finalResult) ||
+    /__HTML_\d+__/.test(finalResult) ||
+    /__INLINE_\d+__/.test(finalResult) ||
+    /__OOC_\d+__/.test(finalResult)
+  ) {
+    // The order of restoration matters for deeply nested content.
+    // We are restoring from the inside out implicitly by replacing all types in each pass.
+    finalResult = finalResult.replace(/__HTML_(\d+)__/g, (_match, index) => htmlBlocks[parseInt(index, 10)]);
+    finalResult = finalResult.replace(/__INLINE_(\d+)__/g, (_match, index) => inlineBlocks[parseInt(index, 10)]);
+    finalResult = finalResult.replace(/__OOC_(\d+)__/g, (_match, index) => oocBlocks[parseInt(index, 10)]);
+    finalResult = finalResult.replace(/__FENCED_(\d+)__/g, (_match, index) => fencedBlocks[parseInt(index, 10)]);
+
     iterations++;
-  } while (finalResult !== previousHtmlPassResult && iterations < maxHtmlRestoreIterations);
-
-  if (iterations >= maxHtmlRestoreIterations && htmlBlocks.length > 0) {
-    console.warn('WeatherPack: Max HTML restoration iterations reached. Result might be incomplete.');
+    if (iterations > maxIterations) {
+      console.warn('WeatherPack: Max restoration iterations reached. Result might be incomplete.');
+      break;
+    }
   }
 
   if (name) {
