@@ -9,8 +9,14 @@ export interface ExtensionSettings {
   formatVersion: string;
   autoMode: AutoModeOptions;
   enableMarkdownSimplification: boolean;
-  wrapRegularTextWithItalic: boolean;
   removeNamePrefix: boolean;
+
+  // Markdown Simplification Details
+  wrapRegularTextWithItalic: boolean;
+  normalizeFancyQuotes: boolean;
+  normalizeMultipleAsterisks: boolean;
+  unwrapHtmlJs: boolean;
+  cleanItalicsInQuotes: boolean;
 
   // HTML Processing Settings
   includeHTML: boolean;

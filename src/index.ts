@@ -15,8 +15,13 @@ const defaultSettings: ExtensionSettings = {
   formatVersion: FORMAT_VERSION,
   autoMode: AutoModeOptions.NONE,
   enableMarkdownSimplification: true,
-  wrapRegularTextWithItalic: true,
   removeNamePrefix: false,
+  // Markdown Simplification Details
+  wrapRegularTextWithItalic: true,
+  normalizeFancyQuotes: true,
+  normalizeMultipleAsterisks: true,
+  unwrapHtmlJs: true,
+  cleanItalicsInQuotes: true,
   // HTML Processing Settings
   includeHTML: false,
   includeCodeBlocks: true, // Like "```html" or "```"
@@ -222,6 +227,52 @@ async function initSettingsUI() {
     });
   }
 
+  // Normalize Fancy Quotes
+  const normalizeFancyQuotesCheckbox = settingsContainer.querySelector(
+    '#weatherpack_normalize_fancy_quotes',
+  ) as HTMLInputElement;
+  if (normalizeFancyQuotesCheckbox) {
+    normalizeFancyQuotesCheckbox.checked = settings.normalizeFancyQuotes;
+    normalizeFancyQuotesCheckbox.addEventListener('change', () => {
+      settings.normalizeFancyQuotes = normalizeFancyQuotesCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Normalize Multiple Asterisks
+  const normalizeMultipleAsterisksCheckbox = settingsContainer.querySelector(
+    '#weatherpack_normalize_multiple_asterisks',
+  ) as HTMLInputElement;
+  if (normalizeMultipleAsterisksCheckbox) {
+    normalizeMultipleAsterisksCheckbox.checked = settings.normalizeMultipleAsterisks;
+    normalizeMultipleAsterisksCheckbox.addEventListener('change', () => {
+      settings.normalizeMultipleAsterisks = normalizeMultipleAsterisksCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Unwrap HTML/JS
+  const unwrapHtmlJsCheckbox = settingsContainer.querySelector('#weatherpack_unwrap_html_js') as HTMLInputElement;
+  if (unwrapHtmlJsCheckbox) {
+    unwrapHtmlJsCheckbox.checked = settings.unwrapHtmlJs;
+    unwrapHtmlJsCheckbox.addEventListener('change', () => {
+      settings.unwrapHtmlJs = unwrapHtmlJsCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
+
+  // Clean Italics in Quotes
+  const cleanItalicsInQuotesCheckbox = settingsContainer.querySelector(
+    '#weatherpack_clean_italics_in_quotes',
+  ) as HTMLInputElement;
+  if (cleanItalicsInQuotesCheckbox) {
+    cleanItalicsInQuotesCheckbox.checked = settings.cleanItalicsInQuotes;
+    cleanItalicsInQuotesCheckbox.addEventListener('change', () => {
+      settings.cleanItalicsInQuotes = cleanItalicsInQuotesCheckbox.checked;
+      settingsManager.saveSettings();
+    });
+  }
+
   // Include HTML
   const includeHTMLCheckbox = settingsContainer.querySelector('#weatherpack_include_html') as HTMLInputElement;
   if (includeHTMLCheckbox) {
@@ -377,6 +428,25 @@ async function resetSettingsToDefaults() {
     '#weatherpack_remove_name_prefix',
   ) as HTMLInputElement;
   if (removeNamePrefixCheckbox) removeNamePrefixCheckbox.checked = settings.removeNamePrefix;
+
+  const normalizeFancyQuotesCheckbox = settingsContainer.querySelector(
+    '#weatherpack_normalize_fancy_quotes',
+  ) as HTMLInputElement;
+  if (normalizeFancyQuotesCheckbox) normalizeFancyQuotesCheckbox.checked = settings.normalizeFancyQuotes;
+
+  const normalizeMultipleAsterisksCheckbox = settingsContainer.querySelector(
+    '#weatherpack_normalize_multiple_asterisks',
+  ) as HTMLInputElement;
+  if (normalizeMultipleAsterisksCheckbox)
+    normalizeMultipleAsterisksCheckbox.checked = settings.normalizeMultipleAsterisks;
+
+  const unwrapHtmlJsCheckbox = settingsContainer.querySelector('#weatherpack_unwrap_html_js') as HTMLInputElement;
+  if (unwrapHtmlJsCheckbox) unwrapHtmlJsCheckbox.checked = settings.unwrapHtmlJs;
+
+  const cleanItalicsInQuotesCheckbox = settingsContainer.querySelector(
+    '#weatherpack_clean_italics_in_quotes',
+  ) as HTMLInputElement;
+  if (cleanItalicsInQuotesCheckbox) cleanItalicsInQuotesCheckbox.checked = settings.cleanItalicsInQuotes;
 
   const includeHTMLCheckbox = settingsContainer.querySelector('#weatherpack_include_html') as HTMLInputElement;
   if (includeHTMLCheckbox) includeHTMLCheckbox.checked = settings.includeHTML;
@@ -536,7 +606,7 @@ async function formatMessage(id: number) {
   if (settings.enableMarkdownSimplification) {
     const newMessageText = simplifyMarkdown(
       message.mes,
-      settings.wrapRegularTextWithItalic,
+      settings,
       settings.removeNamePrefix ? message.name : undefined,
     );
     if (newMessageText !== message.mes) {
@@ -593,7 +663,7 @@ async function askAiAboutMessage(messageId: number) {
         if (currentSettings.enableMarkdownSimplification) {
           newContent = simplifyMarkdown(
             newContent,
-            currentSettings.wrapRegularTextWithItalic,
+            currentSettings,
             currentSettings.removeNamePrefix ? message.name : undefined,
           );
         }

@@ -4,10 +4,14 @@ A [SillyTavern](https://docs.sillytavern.app/) extension that automatically fixe
 
 ## Features
 
-- **Markdown Simplification**: Normalizes italic formatting by removing excess asterisks and applying consistent styling. It is especially useful for Deepseek.
-- **Quote Processing**: Handles quoted dialogue properly without adding italic formatting
-- **HTML Processing**: Safely processes HTML content with JavaScript security analysis (Read [Security](#security) section)
-- **Auto Mode**: Automatically applies fixes to incoming responses, outgoing messages, or both
+- **Granular Markdown Simplification**: Offers detailed control over text normalization, including:
+    - Normalizing fancy quotes (`“”` to `""`).
+    - Consolidating multiple asterisks (`**` to `*`).
+    - Cleaning italics from within quotes.
+    - Unwrapping HTML/JS from code blocks for proper rendering.
+- **Quote Processing**: Handles quoted dialogue properly without adding italic formatting.
+- **HTML Processing**: Safely processes HTML content with JavaScript security analysis (Read [Security](#security) section).
+- **Auto Mode**: Automatically applies fixes to incoming responses, outgoing messages, or both.
 
 ## Installation
 
@@ -39,29 +43,38 @@ Configure the extension to automatically process messages:
 
 Access settings through Extensions > WeatherPack:
 
-- **Enable Markdown Simplification**: Toggle markdown processing
-- **Wrap Regular Text with Italic**: Toggle automatic italic wrapping for regular text
-- **Include HTML**: Process HTML content in messages
-- **Include Code Blocks**: Process content within code blocks
-- **JavaScript Security**: Configure security analysis for embedded scripts
-- **Allowed/Blocked APIs**: Control which JavaScript APIs are permitted
+- **Enable Markdown Simplification**: Toggle all markdown processing features.
+- **Wrap Regular Text with Italic**: Wraps non-quoted text in italics.
+- **Remove Name Prefix**: Removes the character's name from the start of messages.
+- **Normalize Fancy Quotes**: Converts curly quotes (`“”`) to standard straight quotes (`""`).
+- **Normalize Multiple Asterisks**: Consolidates multiple asterisks (e.g., `**`, `***`) into a single asterisk.
+- **Unwrap HTML/JS from Code Blocks**: Fixes HTML/JS that is incorrectly wrapped in backticks.
+- **Clean Italics Within Quotes**: Removes asterisks from inside quotation marks.
+- **Include HTML**: Process HTML content in messages.
+- **Include Code Blocks**: Process content within code blocks.
+- **JavaScript Security**: Configure security analysis for embedded scripts.
+- **Allowed/Blocked APIs**: Control which JavaScript APIs are permitted.
 
 ## Markdown Processing
 
 The extension intelligently processes different types of content blocks:
 
 ### Text Processing
-- **Regular Text**: Wraps non-quoted text in italics (`*text*`) when "Wrap Regular Text with Italic" is enabled
-- **Quoted Dialogue**: Preserves quotes without adding italics
-- **Mixed Content**: Handles alternating quotes and narrative text appropriately
+- **Regular Text**: Wraps non-quoted text in italics (`*text*`) when "Wrap Regular Text with Italic" is enabled.
+- **Quoted Dialogue**: Preserves quotes. Can optionally remove italics from within quotes.
+- **Mixed Content**: Handles alternating quotes and narrative text appropriately.
+
+### Normalization Options
+- **Fancy Quotes**: Converts `“”` to `""`.
+- **Asterisks**: Converts `**` and `***` to `*`.
 
 ### Preserved Blocks
 The following content types are preserved without modification:
 
-- **Fenced Code Blocks**: Content within ` ```...``` ` remains untouched
-- **Inline Code**: Content within `` `...` `` has asterisks removed but structure preserved
-- **HTML Tags**: All HTML elements (`<div>`, `<span>`, etc.) are preserved with their content
-- **OOC Blocks**: Out-of-character content `(OOC: ...)` is left unchanged
+- **Fenced Code Blocks**: Content within ` ```...``` ` remains untouched.
+- **Inline Code**: Content within `` `...` `` is preserved. If it contains HTML and "Unwrap HTML/JS" is enabled, the backticks are removed.
+- **HTML Tags**: All HTML elements (`<div>`, `<span>`, etc.) are preserved with their content.
+- **OOC Blocks**: Out-of-character content `(OOC: ...)` is left unchanged.
 
 ### Processing Examples
 

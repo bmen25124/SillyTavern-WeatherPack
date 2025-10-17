@@ -16,85 +16,141 @@
                     </select>
                 </div>
 
-                <div class="setting-row">
-                    <label class="checkbox_label">
-                        <input type="checkbox" id="weatherpack_enable_simplification" />
-                        Enable Markdown Simplification
-                    </label>
+                <div class="sub-group">
+                    <div class="sub-group-header">Markdown Simplification</div>
+                    <div class="setting-row">
+                        <label class="checkbox_label" title="Enable or disable all markdown simplification features.">
+                            <input type="checkbox" id="weatherpack_enable_simplification" />
+                            Enable Markdown Simplification
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label
+                            class="checkbox_label"
+                            title="Wraps text that is not part of a quote with italic asterisks (*text*)."
+                        >
+                            <input type="checkbox" id="weatherpack_wrap_regular_text" />
+                            Wrap Regular Text with Italic
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label
+                            class="checkbox_label"
+                            title="Removes the character's name from the beginning of their message."
+                        >
+                            <input type="checkbox" id="weatherpack_remove_name_prefix" />
+                            Remove Name Prefix
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label
+                            class="checkbox_label"
+                            title='Converts curly quotes (“ ”) to standard straight quotes (" ").'
+                        >
+                            <input type="checkbox" id="weatherpack_normalize_fancy_quotes" />
+                            Normalize Fancy Quotes
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label
+                            class="checkbox_label"
+                            title="Consolidates multiple asterisks (e.g., **, ***) into a single asterisk for italics."
+                        >
+                            <input type="checkbox" id="weatherpack_normalize_multiple_asterisks" />
+                            Normalize Multiple Asterisks
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label
+                            class="checkbox_label"
+                            title="Removes backticks from around HTML/JS code blocks to allow them to render correctly."
+                        >
+                            <input type="checkbox" id="weatherpack_unwrap_html_js" />
+                            Unwrap HTML/JS from Code Blocks
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label class="checkbox_label" title="Removes any asterisks found inside of quotation marks.">
+                            <input type="checkbox" id="weatherpack_clean_italics_in_quotes" />
+                            Clean Italics Within Quotes
+                        </label>
+                    </div>
                 </div>
 
-                <div class="setting-row">
-                    <label class="checkbox_label">
-                        <input type="checkbox" id="weatherpack_wrap_regular_text" />
-                        Wrap Regular Text with Italic
-                    </label>
+                <div class="sub-group">
+                    <div class="sub-group-header">HTML & JavaScript Processing</div>
+                    <div class="setting-row">
+                        <label
+                            class="checkbox_label"
+                            title="Allows the extension to process and render raw HTML and execute JavaScript. Use with caution."
+                        >
+                            <input type="checkbox" id="weatherpack_include_html" />
+                            Include HTML Processing
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label
+                            class="checkbox_label"
+                            title="Determines if content inside fenced code blocks (```) should be processed."
+                        >
+                            <input type="checkbox" id="weatherpack_include_code_blocks" />
+                            Include Code Blocks
+                        </label>
+                    </div>
                 </div>
 
-                <div class="setting-row">
-                    <label class="checkbox_label">
-                        <input type="checkbox" id="weatherpack_remove_name_prefix" />
-                        Remove Name Prefix (from start of message)
-                    </label>
-                </div>
-
-                <div class="setting-row">
-                    <label class="checkbox_label">
-                        <input type="checkbox" id="weatherpack_include_html" />
-                        Include HTML Processing
-                    </label>
-                </div>
-
-                <div class="setting-row">
-                    <label class="checkbox_label">
-                        <input type="checkbox" id="weatherpack_include_code_blocks" />
-                        Include Code Blocks
-                    </label>
-                </div>
-
-                <div class="setting-row">
-                    <label class="checkbox_label">
-                        <input type="checkbox" id="weatherpack_enable_js_analysis" />
-                        Enable JavaScript Security Analysis
-                    </label>
-                </div>
-
-                <div class="setting-row">
-                    <label class="checkbox_label">
-                        <input type="checkbox" id="weatherpack_allow_obfuscation" />
-                        Allow Obfuscated JavaScript
-                    </label>
-                </div>
-
-                <div class="setting-row">
-                    <label>Max Script Length</label>
-                    <input
-                        type="number"
-                        class="text_pole"
-                        id="weatherpack_max_script_length"
-                        min="1000"
-                        max="1000000"
-                        step="1000"
-                    />
-                </div>
-
-                <div class="setting-row">
-                    <label>Allowed APIs (comma-separated)</label>
-                    <textarea
-                        class="text_pole textarea_compact"
-                        id="weatherpack_allowed_apis"
-                        rows="3"
-                        placeholder="console, Math, Date, JSON"
-                    ></textarea>
-                </div>
-
-                <div class="setting-row">
-                    <label>Blocked APIs (comma-separated)</label>
-                    <textarea
-                        class="text_pole textarea_compact"
-                        id="weatherpack_blocked_apis"
-                        rows="3"
-                        placeholder="fetch, XMLHttpRequest, eval"
-                    ></textarea>
+                <div class="sub-group">
+                    <div class="sub-group-header">JavaScript Security</div>
+                    <div class="setting-row">
+                        <label
+                            class="checkbox_label"
+                            title="Enables security analysis to block potentially malicious JavaScript code."
+                        >
+                            <input type="checkbox" id="weatherpack_enable_js_analysis" />
+                            Enable JavaScript Security Analysis
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label
+                            class="checkbox_label"
+                            title="Allows the execution of obfuscated or difficult-to-read JavaScript. This is a security risk."
+                        >
+                            <input type="checkbox" id="weatherpack_allow_obfuscation" />
+                            Allow Obfuscated JavaScript
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <label>Max Script Length</label>
+                        <input
+                            type="number"
+                            class="text_pole"
+                            id="weatherpack_max_script_length"
+                            min="1000"
+                            max="1000000"
+                            step="1000"
+                            title="The maximum allowed length for a single JavaScript script."
+                        />
+                    </div>
+                    <div class="setting-row">
+                        <label>Allowed APIs (comma-separated)</label>
+                        <textarea
+                            class="text_pole textarea_compact"
+                            id="weatherpack_allowed_apis"
+                            rows="3"
+                            placeholder="console, Math, Date, JSON"
+                            title="A list of JavaScript APIs that are permitted to run."
+                        ></textarea>
+                    </div>
+                    <div class="setting-row">
+                        <label>Blocked APIs (comma-separated)</label>
+                        <textarea
+                            class="text_pole textarea_compact"
+                            id="weatherpack_blocked_apis"
+                            rows="3"
+                            placeholder="fetch, XMLHttpRequest, eval"
+                            title="A list of JavaScript APIs that are explicitly blocked for security reasons."
+                        ></textarea>
+                    </div>
                 </div>
 
                 <div class="setting-row">
