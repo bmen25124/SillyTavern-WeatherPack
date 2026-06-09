@@ -240,6 +240,17 @@ A moment of silence. Then, almost a whisper: **"...Unique."**`;
       expect(simplifyMarkdown(input, baseSettings)).toBe(expected);
     });
 
+    test('preserves fenced code blocks inside HTML tags', () => {
+      const input = `*Foobar*
+<infoblock>
+\`\`\`md
+Location: Room
+\`\`\`
+</infoblock>`;
+
+      expect(simplifyMarkdown(input, baseSettings)).toBe(input);
+    });
+
     test('preserves OOC blocks', () => {
       const input = 'This is a test. (OOC: This should not be *italicized*.)';
       const expected = '*This is a test.* (OOC: This should not be *italicized*.)';
